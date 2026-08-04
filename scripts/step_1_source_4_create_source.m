@@ -27,6 +27,10 @@ file_table = readtable(file_list_path, opts);
 
 %% Section 2: Loop through each row
 N = height(file_table);
+copied_count = 0;
+existing_count = 0;
+failed_count = 0;
+
 for i = 1:N
     % Print progress
     row_label = file_table.subjectID{i} + "_" + file_table.sessionID{i} + "_" + file_table.runID{i};
@@ -88,19 +92,47 @@ for i = 1:N
         % Skip copy if destination file already exists
         if exist(destination_file, 'file')
             fprintf('  Already exists: %s\n', renamed_file);
+            existing_count = existing_count + 1;
             continue;
         end
 
-        % Attempt to copy the file with error handling
+        % Copy to a temporary local file so interrupted copies are not mistaken for complete files
+        partial_file = [char(destination_file), '.partial'];
+
+        % Attempt to copy and finalise the file with error handling
         try
-            copyfile(source_file, destination_file);
+            % Remove any partial file left by an interrupted earlier run
+            if exist(partial_file, 'file')
+                delete(partial_file);
+            end
+
+            copyfile(source_file, partial_file);
+            movefile(partial_file, destination_file);
+            copied_count = copied_count + 1;
             fprintf('  Copied: %s\n', renamed_file);
         catch ME
+            failed_count = failed_count + 1;
+
+            % Remove an incomplete local copy when possible; a later rerun will also clean it up
+            if exist(partial_file, 'file')
+                try
+                    delete(partial_file);
+                catch cleanup_ME
+                    warning('  Could not remove partial copy %s: %s', partial_file, cleanup_ME.message);
+                end
+            end
+
             warning('  Failed to copy %s: %s', original_file, ME.message);
         end
     end
 end
 
-fprintf('\nAll eligible files copied.\n');
+if failed_count == 0
+    fprintf('\nEligible-file copy pass complete: %d copied, %d already existed, 0 failed.\n', ...
+        copied_count, existing_count);
+else
+    warning(['Eligible-file copy pass incomplete: %d copied, %d already existed, %d failed. ' ...
+        'Rerun this script to retry the failed files.'], copied_count, existing_count, failed_count);
+end
 
 log_command_window('stop');

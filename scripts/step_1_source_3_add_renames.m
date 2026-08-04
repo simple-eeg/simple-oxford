@@ -1,7 +1,8 @@
 %% step_1_source_3_add_renames.m 
 % This script adds renamed filenames and destination paths to the EEG file table.
 % It loads the existing dataset_list_prelim.xlsx spreadsheet, adds renamed filenames
-% (in BIDS format) and local path destinations, and flags any missing data.
+% using BIDS-style filename conventions and local destination paths, and flags rows
+% lacking required identifiers, a recognised source format, or required source files.
 
 log_command_window('start');
 clear; clc;
