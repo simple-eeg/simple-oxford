@@ -21,7 +21,7 @@ log_command_window('start');
 clear; clc;
 
 %% 0) User configuration (EDIT HERE)
-PROJECT_ROOT   = "/Users/lukebaxter/pipeline_paper/simple-oxford";
+PROJECT_ROOT   = "/Users/lukebaxter/Developer/simple-eeg/simple-oxford";
 XLSX_PATH      = PROJECT_ROOT + "/data_lists/dataset_list_prelim.xlsx";
 MAP_CSV        = PROJECT_ROOT + "/data/info_prelim/event_annotations/event_annotation_summary.csv";
 

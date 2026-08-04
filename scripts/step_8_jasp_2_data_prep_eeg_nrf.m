@@ -45,7 +45,7 @@ log_command_window('start');
 clear; clc;
 
 %% 0) User config: paths and constants
-baseDir = '/Users/lukebaxter/pipeline_paper/simple-oxford';
+baseDir = '/Users/lukebaxter/Developer/simple-eeg/simple-oxford';
 
 inCsv  = fullfile(baseDir, 'data', 'summary', 'screening', 'pooled_screened_eeg_nrf_features.csv');
 outDir = fullfile(baseDir, 'data', 'jasp');

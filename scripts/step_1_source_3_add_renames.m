@@ -9,7 +9,7 @@ clear; clc;
 %% Section 1: Setup
 
 % Define base paths and filenames
-local_base = '/Users/lukebaxter/pipeline_paper/simple-oxford';
+local_base = '/Users/lukebaxter/Developer/simple-eeg/simple-oxford';
 file_list_name = 'dataset_list_prelim.xlsx';
 file_list_path = fullfile(local_base, 'data_lists', file_list_name);
 

@@ -28,7 +28,7 @@ log_command_window('start');
 clear; clc;
 
 %% ───────────────────────────── Paths ─────────────────────────────
-baseDir = '/Users/lukebaxter/pipeline_paper/simple-oxford';
+baseDir = '/Users/lukebaxter/Developer/simple-eeg/simple-oxford';
 inXlsx  = fullfile(baseDir, 'data_lists', 'dataset_list_prelim.xlsx');
 outCsv  = fullfile(baseDir, 'data_lists', 'dataset_list.csv');
 

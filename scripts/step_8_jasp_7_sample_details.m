@@ -42,7 +42,7 @@ log_command_window('start');
 clear; clc;
 
 %% Paths
-baseDir = '/Users/lukebaxter/pipeline_paper/simple-oxford';
+baseDir = '/Users/lukebaxter/Developer/simple-eeg/simple-oxford';
 
 jaspInPath = fullfile(baseDir, 'data', 'jasp', 'jasp_data_all.csv');
 medInPath  = fullfile(baseDir, 'data_lists', 'medscinet_export_petal.xlsx');

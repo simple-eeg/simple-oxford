@@ -20,7 +20,7 @@ log_command_window('start');
 clear; clc;
 
 %% 0) User config: paths
-baseDir = '/Users/lukebaxter/pipeline_paper/simple-oxford';
+baseDir = '/Users/lukebaxter/Developer/simple-eeg/simple-oxford';
 
 jaspDir = fullfile(baseDir, 'data', 'jasp');
 

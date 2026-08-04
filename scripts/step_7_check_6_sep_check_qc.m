@@ -39,7 +39,7 @@ log_command_window('start');
 clear; clc;
 
 %% ───────────────────────────── User config ──────────────────────────────
-baseDir = '/Users/lukebaxter/pipeline_paper/simple-oxford';
+baseDir = '/Users/lukebaxter/Developer/simple-eeg/simple-oxford';
 
 inDir = fullfile(baseDir, 'data', 'summary', 'screening');
 inCSV = fullfile(inDir, 'pooled_screened_eeg_qc_features.csv');

@@ -18,7 +18,7 @@ clear; clc;
 %% Section 1: Setup
 
 % Define base paths for local files and remote server
-local_base   = '/Users/lukebaxter/pipeline_paper/simple-oxford';
+local_base   = '/Users/lukebaxter/Developer/simple-eeg/simple-oxford';
 medscinet_file = fullfile(local_base, 'data_lists', 'medscinet_export_petal.xlsx');
 output_file  = fullfile(local_base, 'data_lists', 'dataset_list_prelim.xlsx');
 remote_base  = '/Volumes/NDCN_SLATER/PiPAgroup_data_2TS/pipagroup_data_backup';

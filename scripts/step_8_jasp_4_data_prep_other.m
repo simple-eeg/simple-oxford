@@ -46,7 +46,7 @@ log_command_window('start');
 clear; clc;
 
 %% 0) User config: paths and exact column headers
-baseDir = '/Users/lukebaxter/pipeline_paper/simple-oxford';
+baseDir = '/Users/lukebaxter/Developer/simple-eeg/simple-oxford';
 
 inXlsx = fullfile(baseDir, 'data_lists', 'medscinet_export_petal.xlsx');
 

@@ -18,7 +18,7 @@ log_command_window('start');
 clear; clc;
 
 %% Paths
-baseDir      = '/Users/lukebaxter/pipeline_paper/simple-oxford';
+baseDir      = '/Users/lukebaxter/Developer/simple-eeg/simple-oxford';
 fileListPath = fullfile(baseDir, 'data_lists', 'dataset_list.csv');
 
 fprintf('Loading: %s\n', fileListPath);

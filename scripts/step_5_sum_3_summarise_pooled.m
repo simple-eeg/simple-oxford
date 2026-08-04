@@ -38,7 +38,7 @@ clear; clc;
 
 %% ───────────────────────────── USER CONFIG ─────────────────────────────
 % 1) Base paths
-baseDir   = '/Users/lukebaxter/pipeline_paper/simple-oxford';
+baseDir   = '/Users/lukebaxter/Developer/simple-eeg/simple-oxford';
 fileList  = fullfile(baseDir, 'data_lists', 'dataset_list.csv');
 
 % 2) Output directory (created if missing)

@@ -26,7 +26,7 @@ log_command_window('start');
 clear; clc;
 
 %% ───────────────────────────── USER CONFIG ─────────────────────────────
-baseDir = '/Users/lukebaxter/pipeline_paper/simple-oxford';
+baseDir = '/Users/lukebaxter/Developer/simple-eeg/simple-oxford';
 
 pooledDir = fullfile(baseDir, 'data', 'summary', 'pooled');
 screenDir = fullfile(baseDir, 'data', 'summary', 'screening');

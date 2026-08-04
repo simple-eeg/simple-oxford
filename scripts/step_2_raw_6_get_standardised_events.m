@@ -27,7 +27,7 @@ log_command_window('start');
 clear; clc;
 
 %% 0) Setup paths
-root          = "/Users/lukebaxter/pipeline_paper/simple-oxford";
+root          = "/Users/lukebaxter/Developer/simple-eeg/simple-oxford";
 fileListPath  = root + "/data_lists/dataset_list_prelim.xlsx";
 eventsFolder  = root + "/data/info_prelim/event_types";
 

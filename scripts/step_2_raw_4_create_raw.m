@@ -13,7 +13,7 @@ log_command_window('start');
 clear; clc;
 
 %% 0) Setup
-root = "/Users/lukebaxter/pipeline_paper/simple-oxford";
+root = "/Users/lukebaxter/Developer/simple-eeg/simple-oxford";
 eegListXlsx = root + "/data_lists/dataset_list_prelim.xlsx";
 mapCsv      = root + "/data/info_prelim/event_annotations/event_annotation_summary.csv";
 

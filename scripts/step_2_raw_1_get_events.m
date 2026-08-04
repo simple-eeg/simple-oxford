@@ -20,7 +20,7 @@ clear; clc;
 %% Setup
 
 % Define base directory (hardcoded for this project)
-baseDir = '/Users/lukebaxter/pipeline_paper/simple-oxford';
+baseDir = '/Users/lukebaxter/Developer/simple-eeg/simple-oxford';
 
 % Add functions folder to MATLAB path
 functionsFolder = fullfile(baseDir, 'functions');

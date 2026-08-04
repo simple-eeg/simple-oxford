@@ -16,7 +16,7 @@ log_command_window('start');
 clear; clc;
 
 %% Paths
-baseDir = '/Users/lukebaxter/pipeline_paper/simple-oxford';
+baseDir = '/Users/lukebaxter/Developer/simple-eeg/simple-oxford';
 fileListPath = fullfile(baseDir, 'data_lists', 'dataset_list_prelim.xlsx');
 mappingPath  = fullfile(baseDir, 'data', 'info_prelim', 'event_annotations', 'event_annotation_summary.csv');
 
