@@ -11,8 +11,8 @@
 %   - dataset_list_prelim.xlsx (must contain required metadata columns)
 %
 % NOTE: Outputs go to data/info_prelim/event_annotations.
-%       Downstream scripts that read the mapping CSV will need their paths
-%       updated later (we'll handle that at the end of step 2).
+%       Downstream scripts read the mapping CSV from this same folder; no path
+%       update is required.
 
 log_command_window('start');
 clear; clc;
@@ -162,7 +162,7 @@ summaryTbl.Filter_OR   = repmat("", height(summaryTbl), 1);    % At least one of
 summaryTbl.Filter_NOT  = repmat("", height(summaryTbl), 1);    % None of these must be present
 summaryTbl.LatencyCorrect = repmat("", height(summaryTbl), 1); % Blank column for user-defined flags for latency correction
 
-% Write summary CSV to the NEW folder (data/source/events)
+% Write summary CSV to data/info_prelim/event_annotations
 writetable(summaryTbl, summaryOutPath);
 
 fprintf('Done.\n');

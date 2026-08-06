@@ -1,7 +1,7 @@
 %% step_2_raw_4_create_raw.m
 % Purpose:
 %   - Drive conversions from data_lists/dataset_list_prelim.xlsx (one row per dataset)
-%   - Process rows where excluded_datasets is blank and format is recognised
+%   - Process rows not marked "excluded" (case-insensitive) when format is recognised
 %   - Build EEGLAB EEG structs via helper functions:
 %       * XDF:   functions/convert_xdf_to_eeg.m
 %       * Curry: functions/convert_curry_to_eeg.m
@@ -84,6 +84,7 @@ T = T(~strcmpi(excl, "excluded"), :);
 N = height(T);
 if N == 0
     fprintf("No rows to process (nothing included). Nothing to do.\n");
+    log_command_window('stop');
     return;
 end
 

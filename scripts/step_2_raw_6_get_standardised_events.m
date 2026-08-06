@@ -75,6 +75,7 @@ if isempty(idxIncluded)
     fprintf("No included rows found (excluded_datasets != \"\"). Nothing to do.\n");
     % Still save the added empty column for completeness
     writetable(T, fileListPath);
+    log_command_window('stop');
     return;
 end
 

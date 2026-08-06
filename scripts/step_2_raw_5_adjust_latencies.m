@@ -12,7 +12,7 @@
 %   - Provenance/idempotence:
 %       * If EEG.event.urlatency exists, all latencies must match (within TOL) and count must match; otherwise warn & skip file.
 %       * Also best-effort cross-check with EEG.urevent via indices; any mismatch → warn & skip file.
-%       * If no urlatency & no usable urevent latencies → create EEG.event.urlatency from current latencies before edits.
+%       * If EEG.event.urlatency is absent, create it from current latencies after any available urevent cross-check.
 %   - Integrity: run eeg_checkset(EEG,'eventconsistency') before saving.
 %   - Save: overwrite .set in place only if at least one event was adjusted; if zero matches → warn & skip saving.
 %   - Console output: per-file summary + targeted warnings.
@@ -57,6 +57,7 @@ FLAGGED_ANNOTS  = annCol(flaggedMask & strlength(annCol) > 0);
 
 if isempty(FLAGGED_ANNOTS)
     fprintf('Info: No annotations flagged (LatencyCorrect == "1"). Nothing to do.\n');
+    log_command_window('stop');
     return;
 end
 
@@ -79,6 +80,7 @@ rowsToProcess = (strlength(pathCol) > 0) & (strlength(fileCol) > 0) & (lcorCol =
 
 if ~any(rowsToProcess)
     fprintf('Info: No files flagged in dataset_list_prelim.xlsx (latency_correct == "1"). Nothing to do.\n');
+    log_command_window('stop');
     return;
 end
 

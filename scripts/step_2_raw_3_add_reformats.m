@@ -5,8 +5,8 @@
 %       1) excluded_datasets  -> "excluded" if row should be excluded, "" otherwise
 %       2) EEGfile_reformatted -> EEGfile_renamed but with extension changed to .set
 %       3) path_reformatted    -> path_renamed but with "data/source/" -> "data/raw/"
-%   - Exclusion rule: exclude if either renaming_info_missing == "missing"
-%     OR event_missing == "missing"
+%   - Exclusion rule: exclude if either renaming_info_missing or
+%     event_missing is nonblank.
 %
 % Conventions:
 %   - Treat both "" and <missing> as blank for checks.
@@ -108,8 +108,12 @@ for i = 1:N
         T.path_reformatted(i) = "";
     end
 
-    nUpdated = nUpdated + 1;
-    fprintf('Row %d/%d: updated\n', i, N);
+    if T.EEGfile_reformatted(i) ~= "" && T.path_reformatted(i) ~= ""
+        nUpdated = nUpdated + 1;
+        fprintf('Row %d/%d: updated\n', i, N);
+    else
+        fprintf('Row %d/%d: incomplete\n', i, N);
+    end
 end
 
 %% Save and summarize

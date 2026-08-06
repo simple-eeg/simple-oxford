@@ -9,7 +9,7 @@
 %
 % Notes:
 %   - Exact, case-sensitive matching of annotation names
-%   - 'renaming_info_missing' == "missing" rows are skipped (left as "")
+%   - Rows with nonblank 'renaming_info_missing' are skipped (left as "")
 %   - Empty filter columns are ignored (i.e., no constraint)
 
 log_command_window('start');
