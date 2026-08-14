@@ -17,13 +17,25 @@ root = "/Users/lukebaxter/Developer/simple-eeg/simple-oxford";
 eegListXlsx = root + "/data_lists/dataset_list_prelim.xlsx";
 mapCsv      = root + "/data/info_prelim/event_annotations/event_annotation_summary.csv";
 
-% Add functions folder to MATLAB path
-functionsFolder = fullfile(char(root), 'functions');
-addpath(functionsFolder);
-
 % Check EEGLAB is available
 assert(exist('eeglab','file') == 2, "EEGLAB not found on path.");
 eeglab;
+
+% Bind this script to the functions in this repository after EEGLAB has
+% finished adding its own folders and plugins to the MATLAB path.
+functionsFolder = fullfile(char(root), 'functions');
+addpath(functionsFolder, '-begin');
+clear convert_xdf_to_eeg convert_curry_to_eeg read_events_from_curry_cef;
+rehash;
+
+requiredLocalFunctions = {'convert_xdf_to_eeg', 'convert_curry_to_eeg', ...
+    'read_events_from_curry_cef'};
+for functionIdx = 1:numel(requiredLocalFunctions)
+    functionName = requiredLocalFunctions{functionIdx};
+    expectedFunction = fullfile(functionsFolder, [functionName, '.m']);
+    assert(strcmp(which(functionName), expectedFunction), ...
+        '%s must resolve to this repository: %s', functionName, expectedFunction);
+end
 
 %% 1) Load mapping Annotation -> Type (trim + hard-empty-Type check)
 mapOpts = detectImportOptions(mapCsv, 'TextType','string', 'VariableNamingRule','preserve');

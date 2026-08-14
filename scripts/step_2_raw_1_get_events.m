@@ -22,9 +22,20 @@ clear; clc;
 % Define base directory (hardcoded for this project)
 baseDir = '/Users/lukebaxter/Developer/simple-eeg/simple-oxford';
 
-% Add functions folder to MATLAB path
+% Bind this script to the functions in this repository.
 functionsFolder = fullfile(baseDir, 'functions');
-addpath(functionsFolder);
+addpath(functionsFolder, '-begin');
+clear read_events_from_curry_cef read_annotations_from_xdf_csv;
+rehash;
+
+requiredLocalFunctions = {'read_events_from_curry_cef', ...
+    'read_annotations_from_xdf_csv'};
+for functionIdx = 1:numel(requiredLocalFunctions)
+    functionName = requiredLocalFunctions{functionIdx};
+    expectedFunction = fullfile(functionsFolder, [functionName, '.m']);
+    assert(strcmp(which(functionName), expectedFunction), ...
+        '%s must resolve to this repository: %s', functionName, expectedFunction);
+end
 
 % Define paths
 dataListPath = fullfile(baseDir, 'data_lists', 'dataset_list_prelim.xlsx');

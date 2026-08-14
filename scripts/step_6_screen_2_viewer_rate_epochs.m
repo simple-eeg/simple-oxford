@@ -94,7 +94,7 @@ assert(any(QC_BOXPLOT_WHISKER_MODE == validWhModes), ...
     'QC_BOXPLOT_WHISKER_MODE must be "threshold" or "adjacent" (got: "%s").', QC_BOXPLOT_WHISKER_MODE);
 
 %% Validate QC feature list (strict, minimal assumptions)
-assert(iscell(QC_FEATURE_LIST), 'QC_FEATURE_LIST must be a cell array of character vectors (use {''RMS'',''KatzFD'',...}).');
+assert(iscell(QC_FEATURE_LIST), 'QC_FEATURE_LIST must be a cell array of character vectors (use {''maxAbsEpoch'',''KatzFDNorm'',...}).');
 assert(~isempty(QC_FEATURE_LIST), 'QC_FEATURE_LIST must contain at least 1 QC feature.');
 assert(numel(QC_FEATURE_LIST) <= 9, 'QC_FEATURE_LIST has too many entries (max 9 for 3x4 layout). Found: %d.', numel(QC_FEATURE_LIST));
 

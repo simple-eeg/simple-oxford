@@ -25,13 +25,33 @@ clear; clc; close all;
 % USER CONFIG
 % -------------------------------------------------------------------------
 
+baseDir = '/Users/lukebaxter/Developer/simple-eeg/simple-oxford';
+functionsDir = fullfile(baseDir, 'functions');
+addpath(functionsDir, '-begin');
+clear NRFUtils;
+rehash toolboxcache;
+
+expectedNRFUtilsFile = char(java.io.File( ...
+    fullfile(functionsDir, 'NRFUtils.m')).getCanonicalPath());
+resolvedNRFUtilsFile = which('NRFUtils');
+if isempty(resolvedNRFUtilsFile)
+    error('SIMPLE:LocalHelperUnresolved', ...
+        'Required local helper did not resolve: NRFUtils');
+end
+resolvedNRFUtilsFile = char(java.io.File( ...
+    resolvedNRFUtilsFile).getCanonicalPath());
+if ~strcmp(resolvedNRFUtilsFile, expectedNRFUtilsFile)
+    error('SIMPLE:LocalHelperShadowed', ...
+        ['NRFUtils resolved outside this repository. Expected %s; ' ...
+         'resolved %s.'], expectedNRFUtilsFile, resolvedNRFUtilsFile);
+end
+
 % =========================================================================
 % A. File and NRF identity settings
 % =========================================================================
-nrfDir          = '/Users/lukebaxter/Documents/MATLAB/eeglab2026.0.0/plugins/simple/NRFs';
-earlyFile       = 'early_NRF_500Hz.mat';
-noxiousFile     = 'noxious_NRF_500Hz.mat';
-pretermFile     = 'noxious_preterm_NRF_500Hz.mat';
+earlyNRFName    = 'early_NRF_500Hz';
+noxiousNRFName  = 'noxious_NRF_500Hz';
+pretermNRFName  = 'noxious_preterm_NRF_500Hz';
 nrfDisplayNames = {'Early', 'Noxious', 'Noxious preterm'};
 
 % =========================================================================
@@ -101,7 +121,14 @@ sampleIntervalMs = 1000 / fsExpected;
 supportTimeMs    = supportStartMs:sampleIntervalMs:supportEndMs;
 nSupportSamples  = numel(supportTimeMs);
 
-fileNames = {earlyFile, noxiousFile, pretermFile};
+templateReferences = {earlyNRFName, noxiousNRFName, pretermNRFName};
+logicalNRFNames = cell(size(templateReferences));
+canonicalNRFFiles = cell(size(templateReferences));
+for i = 1:numel(templateReferences)
+    [logicalNRFNames{i}, canonicalNRFFiles{i}] = ...
+        NRFUtils.resolveTemplateFile(templateReferences{i}, baseDir);
+end
+
 startMs   = [earlyStartMs, noxiousStartMs, pretermStartMs];
 scales    = [earlyScale, noxiousScale, pretermScale];
 colors    = {earlyColor, noxiousColor, pretermColor};
@@ -115,7 +142,7 @@ metaPublication = {earlyPublication, noxiousPublication, pretermPublication};
 %% ------------------------------------------------------------------------
 % PREALLOCATE OUTPUT CONTAINERS
 % -------------------------------------------------------------------------
-nNRF = numel(fileNames);
+nNRF = numel(logicalNRFNames);
 
 rawNRFs          = cell(1, nNRF);
 loadedFs         = nan(1, nNRF);
@@ -131,7 +158,7 @@ peakLatencyMs    = nan(1, nNRF);
 % LOOP OVER THE THREE NRF FILES
 % -------------------------------------------------------------------------
 for i = 1:nNRF
-    thisPath = fullfile(nrfDir, fileNames{i});
+    thisPath = canonicalNRFFiles{i};
 
     if ~isfile(thisPath)
         error('File not found: %s', thisPath);
