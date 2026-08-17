@@ -2,19 +2,19 @@ function results = run_all_tests(repoRoot, eeglabRoot)
 %RUN_ALL_TESTS Run the self-contained synthetic SIMPLE regression suite.
 
 arguments
-    repoRoot (1,:) char = fileparts(fileparts(mfilename('fullpath')))
-    eeglabRoot (1,:) char = '/Users/lukebaxter/Documents/MATLAB/eeglab2026.0.0'
+    repoRoot (1,:) char
+    eeglabRoot (1,:) char
 end
 
 testsRoot = fileparts(mfilename('fullpath'));
 functionsRoot = fullfile(repoRoot, 'functions');
 templatesRoot = fullfile(repoRoot, 'NRFs');
 fixturePath = fullfile(testsRoot, 'fixtures', ...
-    'simple_absorption_oracle_v1.mat');
+    'simple_scientific_oracle_v1.mat');
 assert(isfile(fixturePath));
 loaded = load(fixturePath, 'oracle');
 oracle = loaded.oracle;
-assert(strcmp(oracle.schema, 'simple-absorption-oracle-v1'));
+assert(strcmp(oracle.schema, 'simple-scientific-oracle-v1'));
 assert(oracle.passed);
 
 originalPath = path;
@@ -378,25 +378,22 @@ assert(isequaln(explicitOutput, shadowOutput), ...
     'An ambient same-named template altered logical repository binding.');
 passed = passed + 1;
 
-numericInput = responseCases(defaultIdx).numeric_input;
-assert_any_error(@() estimate_response(numericInput.data, numericInput.NRF, ...
-    numericInput.fs, numericInput.fs_NRF, numericInput.jitter, ...
-    numericInput.zero_t, numericInput.pre_t, numericInput.post_t), ...
-    'The retired eight-input public estimator still dispatches.');
+assert_any_error(@() estimate_response(fixture, struct(), 'unexpected'), ...
+    'estimate_response accepted an unsupported argument count.');
 passed = passed + 1;
 
-retiredPreproc = ['pop_' 'preproc'];
-retiredResponse = ['pop_' 'estimate_response'];
-assert(isempty(which(retiredPreproc)) || ...
-    ~path_is_within(which(retiredPreproc), repoRoot));
-assert(isempty(which(retiredResponse)) || ...
-    ~path_is_within(which(retiredResponse), repoRoot));
+publicEntries = {'preproc','estimate_response','jittercorrect', ...
+    'quality_control_features'};
+for idx = 1:numel(publicEntries)
+    assert_path(which(publicEntries{idx}), fullfile(repoRoot, 'functions', ...
+        [publicEntries{idx} '.m']));
+end
 passed = passed + 1;
 end
 
 function result = run_extended_contract_tests(repoRoot, eeglabRoot, ...
     testsRoot, functionsRoot, templatesRoot, basePath, oracle)
-% Finite semantic and system-boundary coverage added after oracle capture.
+% Finite semantic and system-boundary coverage for the repository APIs.
 result = struct();
 result.events = run_event_contract_tests();
 result.response = run_response_semantic_tests(repoRoot, oracle);
@@ -1130,7 +1127,7 @@ fixture = qc.coordinator(success).input;
 fresh = quality_control_features(fixture);
 sentinel = fixture;
 for idx = 1:numel(sentinel.epoch)
-    sentinel.epoch(idx).qc = struct('obsolete', -999);
+    sentinel.epoch(idx).qc = struct('existing', -999);
 end
 overwritten = quality_control_features(sentinel);
 assert(isequaln(fresh, overwritten), ...

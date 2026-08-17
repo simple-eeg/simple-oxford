@@ -22,49 +22,52 @@ simple-oxford/
 ├── functions/            MATLAB functions used by the workflow
 ├── NRFs/                 bundled NRF templates and nrf_config.ini
 ├── scripts/              numbered workflow scripts and the logging helper
-├── tests/                synthetic regression fixtures and test runner
+├── tests/                synthetic regression fixtures and test runners
+├── .gitignore
 ├── LICENSE
 └── README.md
 ```
 
-`data/` and `data_lists/` are deliberately present in a fresh clone through
-tracked `.gitkeep` files. Every runtime descendant of `data/` is local and
-ignored by Git. CSV and XLSX files anywhere beneath `data_lists/` are also
-ignored. Do not put data files in version control.
+`data/` and `data_lists/` are present in a checkout through tracked `.gitkeep`
+files. Every runtime descendant of `data/` is local and ignored by Git. CSV and
+XLSX files anywhere beneath `data_lists/` are also ignored. Do not put data
+files in version control.
 
-Each numbered script writes its Command Window diary to `data/logs/`. Logs are
-replaced on a new run of the same script and are ignored by Git. A root-level
-`logs/` directory is not part of the supported layout.
+Each numbered script writes its Command Window diary to `data/logs/`. A run
+replaces the existing log for that script, and all logs are ignored by Git.
 
 ## Software and setup
 
-The workflow requires MATLAB and EEGLAB. The currently verified environment is
-MATLAB R2026a Update 4 with EEGLAB 2026.0.0. Required MATLAB functionality
-includes Statistics and Machine Learning Toolbox operations such as `corr`,
-`robustfit` and `fitlm`, Econometrics Toolbox `fgls`, Signal Processing Toolbox
-operations used by filtering and spectral checks, and Wavelet Toolbox for the
-time-frequency check. Individual routes may also require the EEGLAB import
-support appropriate to their source format, such as Curry, XDF or BIOSIG
-support. CleanLine is optional: preprocessing can use it when selected and
-otherwise uses the retained notch-filter route.
+The workflow requires MATLAB and EEGLAB. The verified environment is
+MATLAB R2026a Update 4 with EEGLAB 2026.0.0. Required functionality includes:
 
-No separate SIMPLE EEGLAB plugin is required. The scripts add this repository's
-`functions/` directory after starting EEGLAB, put it at path precedence, and
-verify that required functions resolve to this checkout. Do not add `NRFs/` to
-the MATLAB path; logical template names are resolved directly against this
-repository.
+- Statistics and Machine Learning Toolbox operations such as `corr`,
+  `robustfit` and `fitlm`;
+- Econometrics Toolbox `fgls`;
+- Signal Processing Toolbox operations used by filtering and spectral checks;
+- Wavelet Toolbox for the time-frequency check; and
+- the EEGLAB import support appropriate to the source format, such as Curry,
+  XDF or BIOSIG support.
+
+CleanLine is optional. Preprocessing uses it when selected and otherwise uses
+the configured notch-filter route.
+
+Scripts that call repository functions start EEGLAB, prepend this checkout's
+`functions/` directory to the MATLAB path, and verify that required functions
+resolve there. Do not add `NRFs/` to the MATLAB path; logical template names
+are resolved directly against this repository.
 
 Most scripts contain an editable Oxford root variable such as `baseDir`,
 `root`, `local_base` or `PROJECT_ROOT`. Set that declaration to the location of
 your checkout before running the script. Run numbered scripts from the
 `scripts/` folder using ordinary MATLAB script semantics. The workflow is
-staged and includes deliberate manual inspection points; it is not one
-push-button batch command.
+staged and includes deliberate manual inspection points; it is not a single
+batch command.
 
-## Bundled functions
+## Functions
 
-The repository contains the complete functions needed for the Oxford SIMPLE
-workflow. Important public entry points include:
+The repository contains the functions used by the Oxford workflow. Important
+public entry points include:
 
 - `preproc(EEG, options)` for rereferencing, resampling, filtering, line-noise
   handling, epoching and baseline correction;
@@ -83,7 +86,7 @@ again for epoching and baseline correction.
 
 ## NRF templates and configuration
 
-`NRFs/` contains six bundled, tracked templates:
+`NRFs/` contains six tracked templates:
 
 ```text
 early_NRF_500Hz.mat
@@ -101,8 +104,8 @@ templates.
 `NRFs/nrf_config.ini` defines the profiles used by Step 4 NRF feature
 extraction. Each profile has exactly six settings: `NRFName`,
 `baselineLength`, `jitter`, `channel`, `projectionTimes_pre` and
-`projectionTimes_post`. `NRFName` in the INI is a logical basename and always
-binds to the matching file in this repository's `NRFs/` directory.
+`projectionTimes_post`. `NRFName` is a logical basename that resolves to the
+matching file in this repository's `NRFs/` directory.
 
 Exactly one projection start must be supplied per fit:
 
@@ -112,80 +115,75 @@ Exactly one projection start must be supplied per fit:
   pre value is empty.
 
 Vectors, two starts, no start, nonfinite values and wrong-sign starts are
-rejected before computation. The public estimator's clean default is an empty
-pre start and a post start of 400 ms. Public estimator and plotting calls may
-also use an explicit MAT-file path; outputs keep the validated logical basename
-as their NRF identity while recording the canonical file used as provenance.
+rejected before computation. The public estimator defaults to an empty pre
+start and a post start of 400 ms. Estimator and plotting calls may also use an
+explicit MAT-file path; outputs retain the validated logical basename as the
+NRF identity and record the canonical file used as provenance.
 
 ## Workflow
 
 Run scripts in numerical order, checking each script's user-editable settings
 and expected inputs before execution.
 
-### Step 1 — source preparation
+### Step 1 — Oxford source preparation
 
-Inventories the Oxford source material, combines study metadata, derives the
-renamed destination structure and copies source files into the local
-`data/source/` layer. Review missing-file and naming information before moving
-on.
+Inventories Oxford source material, combines study metadata, derives the
+destination structure and copies source files into the local `data/source/`
+layer. Review missing-file and naming information before continuing.
 
-### Step 2 — raw-data preparation
+### Step 2 — Oxford raw-data preparation
 
 Reads event annotations, applies the author-defined annotation mapping and
-optional filtering/latency rules, converts supported source formats to EEGLAB,
-checks channels, and creates the framework-ready `data/raw/` layer and final
+optional filtering or latency rules, converts supported source formats to
+EEGLAB, checks channels, and creates `data/raw/` plus the final
 `data_lists/dataset_list.csv`.
 
-Manual work can include populating event `Type` mappings, selecting event
+Manual work can include completing event `Type` mappings, selecting event
 filters, marking latency corrections and reviewing channel inventories.
 
-### Step 3 — processing
+### Steps 3–7 — SIMPLE framework
 
-Loads raw EEGLAB datasets, performs the configured preprocessing, removes
-unwanted events, optionally adds explicit offset/reference events, epochs and
-baseline-corrects, and saves processed datasets with structured provenance.
+The middle block implements the five stages documented in `simple-framework`:
 
-### Step 4 — quantification
+| Oxford step | Framework step | Stage |
+|---|---|---|
+| Step 3 | Step 1 | processing and epoching (`proc`) |
+| Step 4 | Step 2 | QC and NRF quantification (`quant`) |
+| Step 5 | Step 3 | individual summaries and pooling (`sum`) |
+| Step 6 | Step 4 | manual epoch-channel screening (`screen`) |
+| Step 7 | Step 5 | post-screening checks (`check`) |
 
-Calculates the selected per-event/channel QC features, constructs epoch
-indices, and estimates configured NRF features. NRF fits are cached per
-profile/channel while retaining event-level outputs.
+These scripts run from this repository. See the `simple-framework` README for
+detailed stage inputs, outputs, rationale, manual checkpoints and operating
+rules.
 
-### Step 5 — summarisation and pooling
+Step 3 preprocesses continuous recordings, removes unwanted events, adds
+configured offset or internal-reference events, and performs epoching and
+baseline correction. Step 4 calculates per-event/channel QC features and NRF
+fits. Step 5 creates individual and pooled summaries. Step 6 creates the fixed
+screening package, records manual decisions and applies them to pooled outputs.
+Step 7 provides display and machine-readable checks of the screened results.
 
-Adds output paths, produces individual QC/NRF/epoch summaries, pools them, and
-provides plots for inspection. Plot overlays can be disabled; when enabled,
-templates are resolved through the same local-or-explicit contract as the
-estimator.
-
-### Step 6 — manual screening
-
-Creates a versioned screening package, opens the manual viewer and applies the
-saved decisions to pooled outputs. Do not treat the mutable decision snapshot
-as an action history. Complete the intended manual inspection before applying
-decisions.
-
-### Step 7 — post-screening checks
-
-Inspects included epochs, average time series, time-frequency and spectral
-summaries, and paired QC/NRF separation checks. Several scripts display figures
-for scientific review rather than producing an automatic acceptance decision.
-
-### Step 8 — analysis export
+### Step 8 — Oxford analysis export
 
 Builds Oxford-specific JASP-ready tables from the screened EEG results and
-study metadata, and includes bounded descriptive/figure scripts used for the
+study metadata, with bounded descriptive and figure scripts used for the
 methods-paper analysis. The combined endpoint is the subject-level
 `data/jasp/jasp_data_all.csv` when that route is configured and run.
 
 ## User decisions and scientific boundaries
 
-The codebase exposes settings beyond the Petal paper route. Review all enabled
-and disabled user options rather than assuming the checked-in defaults are
+The codebase exposes settings beyond the Petal paper route. Review enabled and
+disabled user options rather than assuming the checked-in settings are
 appropriate for another dataset. In particular, confirm event mappings,
-channels, sampling rates, filters, epoch windows, baseline windows, NRF
-profiles, screening settings, exclusion handling, aggregation choices and
-analysis-specific Step 8 selections.
+channels, sampling rates, filters, epoch and baseline windows, NRF profiles,
+screening settings, exclusion handling, aggregation choices and Step 8
+selections.
+
+The core processing unit is one analysed event-channel instance. Group-level
+inference requires one prespecified participant-level contribution or an
+analysis that accounts for repeated observations. Petal supplies one relevant
+record per participant.
 
 Source data, manual screening, figures and final statistical interpretation
 remain human-reviewed scientific inputs. A successful script or regression
@@ -194,10 +192,10 @@ test establishes technical behaviour; it does not replace those decisions.
 ## Tests
 
 `tests/run_all_tests.m` uses synthetic EEG fixtures only. It exercises the
-absorbed preprocessing, response, jitter and QC contracts, all six bundled
-templates, path precedence, local template binding and clean public APIs in the
-locked MATLAB/EEGLAB environment. It does not read project datasets or run a
-numbered workflow script.
+preprocessing, response, jitter and QC contracts, all six bundled templates,
+path precedence, local template binding and the public APIs in the verified
+MATLAB/EEGLAB environment. It does not read project datasets or run a numbered
+workflow script.
 
 From MATLAB, call the runner with explicit roots:
 
@@ -207,4 +205,12 @@ results = run_all_tests(oxfordRoot, eeglabRoot);
 assert(results.passed);
 ```
 
-The repository is licensed under Apache License 2.0; see `LICENSE`.
+The static repository checks can be run from the checkout root:
+
+```sh
+./tests/run_static_checks.sh
+```
+
+## License
+
+This repository is licensed under the Apache License 2.0. See `LICENSE`.

@@ -63,7 +63,7 @@ assert(is_local_child(baseDir, pooledDir) && ...
     is_local_child(baseDir, functionsFolder), ...
     'Oxford inputs, functions, and prospective log/output paths must remain local.');
 
-% Launch EEGLAB interactively, then make this repository's absorbed functions
+% Launch EEGLAB interactively, then make this repository's functions
 % authoritative over any same-named function on another path entry.
 eeglab;
 assert(isfolder(functionsFolder), 'Missing functions folder: %s', functionsFolder);

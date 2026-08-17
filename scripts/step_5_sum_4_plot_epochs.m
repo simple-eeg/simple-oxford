@@ -50,7 +50,7 @@ nrfCsvPath    = fullfile(pooledDir, 'pooled_eeg_nrf_features.csv');
 functionsFolder = fullfile(baseDir, 'functions');
 assert(isfile(epochsMatPath), 'Missing file: %s', epochsMatPath);
 
-% Launch EEGLAB interactively, then make this repository's absorbed functions
+% Launch EEGLAB interactively, then make this repository's functions
 % authoritative over any same-named function on another path entry.
 eeglab;
 assert(isfolder(functionsFolder), 'Missing functions folder: %s', functionsFolder);

@@ -484,7 +484,7 @@ end
 
 function keys = i_unique_report_keys(labels)
 % Make deterministic, valid and collision-free report fields while retaining
-% the historical readable key whenever its sanitised form is already unique.
+% the readable key whenever its sanitised form is already unique.
 keys = cell(size(labels));
 used = {};
 for idx = 1:numel(labels)

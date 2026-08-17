@@ -20,8 +20,8 @@
 %   shift               - signed integer shift in samples; positive values
 %                         advance/left-shift data and negative values
 %                         delay/right-shift data
-%   NRF_resampled       - Historical/API-compatible output name. Returns the
-%                         same-rate input NRF; no resampling is performed
+%   NRF_resampled       - same-rate input NRF returned unchanged; no
+%                         resampling is performed
 
 
 function [new_data, shift, NRF_resampled] = jittercorrect(data,NRF,fs,fs_NRF, jitter, ...

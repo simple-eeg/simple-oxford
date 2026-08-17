@@ -111,7 +111,6 @@ rsconnect/
 /data/*
 !/data/.gitkeep
 /data/logs/
-/logs/
 
 # Local data-list spreadsheets. Keep the tracked empty folder placeholder.
 /data_lists/**/*.csv

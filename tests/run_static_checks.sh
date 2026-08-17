@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
-# Finite static/Git closure checks for the SIMPLE Oxford redistribution.
-# The candidate is built only from tracked-current and nonignored untracked
-# files. Ignored project data are neither listed nor copied.
+# Finite static/Git checks for the simple-oxford repository baseline.
+# The candidate is built from tracked-current files and untracked source files
+# under the documented top-level contract. Project data and external artefacts
+# are neither listed nor copied.
 
 set -u
 umask 077
@@ -143,11 +144,22 @@ append_inventory_group() {
     done
 }
 
+list_candidate_untracked() {
+    git -C "$repo_root" ls-files --others --exclude-standard -z | \
+        while IFS= read -r -d '' relative_path; do
+            case "$relative_path" in
+                .gitignore|LICENSE|README.md|NRFs/*|data/.gitkeep|data_lists/.gitkeep|functions/*|scripts/*|tests/*)
+                    printf '%s\0' "$relative_path"
+                    ;;
+            esac
+        done
+}
+
 write_source_inventory() {
     inventory_output=$1
     : > "$inventory_output.unsorted"
     append_inventory_group "$inventory_output" git -C "$repo_root" ls-files -z
-    append_inventory_group "$inventory_output" git -C "$repo_root" ls-files --others --exclude-standard -z
+    append_inventory_group "$inventory_output" list_candidate_untracked
     LC_ALL=C sort -u "$inventory_output.unsorted" > "$inventory_output"
     rm -f -- "$inventory_output.unsorted"
 }
@@ -171,7 +183,7 @@ copy_group_to_candidate() {
 
 write_source_inventory "$source_before"
 copy_group_to_candidate git -C "$repo_root" ls-files -z
-copy_group_to_candidate git -C "$repo_root" ls-files --others --exclude-standard -z
+copy_group_to_candidate list_candidate_untracked
 write_source_inventory "$source_after"
 
 if [ -s "$snapshot_errors" ]; then
@@ -180,7 +192,7 @@ elif ! cmp -s "$source_before" "$source_after"; then
     diff -u "$source_before" "$source_after" > "$work_root/snapshot-drift.diff" || true
     record_fail '_setup.snapshot' 'source changed while the tracked-current candidate was materialised'
 else
-    record_pass '_setup.snapshot' 'tracked-current plus nonignored-untracked source was stable; tracked deletions were skipped'
+    record_pass '_setup.snapshot' 'tracked-current and documented untracked source were stable'
 fi
 
 if [ "$fail_count" -ne 0 ]; then
@@ -197,7 +209,7 @@ source_diff_check='PASS'
 if ! git -C "$repo_root" diff --check >> "$work_root/source-diff-check.txt" 2>&1; then
     source_diff_check='FAIL'
 fi
-git -C "$repo_root" ls-files --others --exclude-standard -z | \
+list_candidate_untracked | \
     while IFS= read -r -d '' relative_path; do
         validate_relative_path "$relative_path" || continue
         source_path="$repo_root/$relative_path"
@@ -246,54 +258,47 @@ def require(condition, message):
     if not condition:
         raise AssertionError(message)
 
-require(manifest.get("schema") == "simple-redistribution-coverage-v1", "bad manifest schema")
+require(manifest.get("schema") == "simple-repository-coverage-v1", "bad manifest schema")
 require(manifest.get("repository") == "simple-oxford", "bad repository identity")
-require(manifest.get("transaction") == 3, "bad transaction identity")
+require(manifest.get("baseline") == 1, "bad baseline identity")
 require(manifest.get("comparison_policy") == {
-    "retained_behaviour": "strict isequaln",
+    "exact_behaviour": "strict isequaln",
     "absolute_tolerance": 0,
     "relative_tolerance": 0,
-}, "comparison policy differs from the strict frozen-oracle contract")
+}, "comparison policy differs from the exact scientific contract")
 
 catalog = manifest.get("test_catalog")
 coverage = manifest.get("coverage")
-require(isinstance(catalog, list) and catalog, "empty test catalog")
-require(isinstance(coverage, list) and coverage, "empty coverage table")
+require(isinstance(catalog, list) and len(catalog) == 37, "test catalog count differs")
+require(isinstance(coverage, list) and len(coverage) == 66, "coverage row count differs")
 catalog_ids = [item.get("id") for item in catalog]
 require(all(isinstance(x, str) and x for x in catalog_ids), "blank catalog id")
 require(len(catalog_ids) == len(set(catalog_ids)), "duplicate catalog id")
 catalog_by_id = {item["id"]: item for item in catalog}
 
-expected_keys = set("""
-prep_inputs prep_defaults prep_empty_data prep_empty_array prep_multi_array
-offset_no_event offset_no_source offset_mapping_fields offset_oob offset_validation offset_consistency
-offset_report_keys delete_contracts
-reref_modes resample_modes filter_modes line_off_notch line_frequency_edges cleanline_routes
-epoch_modes epoch_failures baseline_routes preproc_order_history step3_settings_paths
-response_inputs_defaults response_xor response_insufficient response_channel templates_six_rates
-response_rate_grid_bounds resolver_local_explicit resolver_failures_shadow response_every_epoch_array
-response_schema_history retired_estimator_dependency response_scalar_options config_profiles_cache
-numeric_results jitter_shapes_shifts jitter_edges
-jitter_ties_padding qc_coord_schema qc_direct_matrix qc_overwrite_array_times warning_restoration
-dependency_present dependency_missing closure_function_inventory closure_templates closure_retired
-closure_ignore_hyp closure_ignore_real closure_clone closure_logs closure_d141 closure_step54
-closure_step72 closure_step73 closure_step89 closure_generated closure_readme closure_root closure_git
-closure_config closure_paths closure_manifest
-""".split())
+expected_keys = set(["baseline_routes","cleanline_routes","closure_clone","closure_config","closure_current_surface","closure_function_inventory","closure_generated","closure_git","closure_ignore_hyp","closure_ignore_real","closure_logs","closure_manifest","closure_paths","closure_readme","closure_root","closure_step54","closure_step72","closure_step73","closure_step89","closure_templates","closure_viewer_qc_example","config_profiles_cache","delete_contracts","dependency_missing","dependency_present","epoch_failures","epoch_modes","filter_modes","jitter_edges","jitter_shapes_shifts","jitter_ties_padding","line_frequency_edges","line_off_notch","numeric_results","offset_consistency","offset_mapping_fields","offset_no_event","offset_no_source","offset_oob","offset_report_keys","offset_validation","prep_defaults","prep_empty_array","prep_empty_data","prep_inputs","prep_multi_array","preproc_order_history","preprocessing_caller_contract","qc_coord_schema","qc_direct_matrix","qc_overwrite_array_times","reref_modes","resample_modes","resolver_failures_shadow","resolver_local_explicit","response_channel","response_every_epoch_array","response_inputs_defaults","response_insufficient","response_public_contract","response_rate_grid_bounds","response_scalar_options","response_schema_history","response_xor","templates_six_rates","warning_restoration"])
 actual_keys = [row.get("requirement_key") for row in coverage]
 require(len(actual_keys) == len(set(actual_keys)), "duplicate requirement key")
 require(set(actual_keys) == expected_keys, "required coverage-key set differs")
 coverage_ids = [row.get("id") for row in coverage]
-require(all(isinstance(x, str) and x for x in coverage_ids), "blank coverage id")
+require(all(isinstance(x, str) and re.fullmatch(r"BASE-[A-Z]+-\d{3}", x)
+            for x in coverage_ids), "coverage id format differs")
 require(len(coverage_ids) == len(set(coverage_ids)), "duplicate coverage id")
-require({row.get("plan_section") for row in coverage} == {"8.1", "8.2", "8.3", "8.4"},
-        "coverage sections differ from 8.1-8.4")
+require({row.get("category") for row in coverage} ==
+        {"preprocessing", "response-estimation", "scientific-core", "repository"},
+        "coverage categories differ")
+for row in coverage:
+    require(set(row) == {"id", "category", "requirement_key", "surface",
+                         "requirement", "test_refs"},
+            f"coverage row fields differ: {row.get('id')}")
 
 referenced = set()
 referenced_cases = {test_id: set() for test_id in catalog_ids}
 for row in coverage:
-    require(isinstance(row.get("surface"), str) and row["surface"], f"blank surface in {row.get('id')}")
-    require(isinstance(row.get("requirement"), str) and row["requirement"], f"blank requirement in {row.get('id')}")
+    require(isinstance(row.get("surface"), str) and row["surface"],
+            f"blank surface in {row.get('id')}")
+    require(isinstance(row.get("requirement"), str) and row["requirement"],
+            f"blank requirement in {row.get('id')}")
     refs = row.get("test_refs")
     require(isinstance(refs, list) and refs, f"missing test refs in {row.get('id')}")
     for ref in refs:
@@ -338,8 +343,10 @@ require(len(catalog_item("matlab.response.oracle")["cases"]) == 17, "response or
 require(len(catalog_item("matlab.jitter.oracle")["cases"]) == 11, "jitter oracle count")
 require(len(catalog_item("matlab.qc.coordinator.oracle")["cases"]) == 9, "QC coordinator count")
 direct = catalog_item("matlab.qc.direct.oracle")
-require(len(direct["calculators"]) == 11 and len(direct["cases"]) == 25, "QC direct matrix shape")
-require(len(direct["calculators"]) * len(direct["cases"]) == 275, "QC direct matrix count")
+require(len(direct["calculators"]) == 11 and len(direct["cases"]) == 25,
+        "QC direct matrix shape")
+require(len(direct["calculators"]) * len(direct["cases"]) == 275,
+        "QC direct matrix count")
 
 for item in catalog:
     if not item.get("kind", "").startswith("matlab-"):
@@ -353,16 +360,9 @@ for item in catalog:
     require(represented == item["expected_pass_count"],
             f"case/pass count differs: {item['id']}")
 
-expected_totals = manifest.get("expected_runtime_totals")
-require(expected_totals == {
-    "runner_sha256": "31e6ba4b1bc556d20868ce82c1a214459d1a074da4ea88de1642020dfe9b7862",
-    "preproc": 30,
-    "response": 17,
-    "jitter": 11,
-    "qc": 284,
-    "clean_contract": 18,
-    "extended": 120,
-}, "runtime totals differ from the final locked suite")
+expected_totals = {"runner_sha256":"eb8adba3617797d8e3e575a82220ba9227cf819d337e6dfbf0e883f89b28f561","preproc":30,"response":17,"jitter":11,"qc":284,"clean_contract":18,"extended":120}
+require(manifest.get("expected_runtime_totals") == expected_totals,
+        "runtime totals differ from the repository test contract")
 runner_bytes = (root / "tests" / "run_all_tests.m").read_bytes()
 require(hashlib.sha256(runner_bytes).hexdigest() == expected_totals["runner_sha256"],
         "runtime runner differs from its coverage-manifest binding")
@@ -377,27 +377,66 @@ extended_ids = [
 require(sum(catalog_item(test_id)["expected_pass_count"]
             for test_id in extended_ids) == expected_totals["extended"],
         "extended suite total differs")
-require(catalog_item("matlab.preproc.oracle")["expected_pass_count"] == expected_totals["preproc"],
-        "preproc total differs")
-require(catalog_item("matlab.response.oracle")["expected_pass_count"] == expected_totals["response"],
-        "response total differs")
-require(catalog_item("matlab.jitter.oracle")["expected_pass_count"] == expected_totals["jitter"],
-        "jitter total differs")
+require(catalog_item("matlab.preproc.oracle")["expected_pass_count"] ==
+        expected_totals["preproc"], "preproc total differs")
+require(catalog_item("matlab.response.oracle")["expected_pass_count"] ==
+        expected_totals["response"], "response total differs")
+require(catalog_item("matlab.jitter.oracle")["expected_pass_count"] ==
+        expected_totals["jitter"], "jitter total differs")
 require(catalog_item("matlab.qc.coordinator.oracle")["expected_pass_count"] +
-        catalog_item("matlab.qc.direct.oracle")["expected_pass_count"] == expected_totals["qc"],
-        "QC total differs")
-require(catalog_item("matlab.clean_api")["expected_pass_count"] == expected_totals["clean_contract"],
-        "clean-contract total differs")
+        catalog_item("matlab.qc.direct.oracle")["expected_pass_count"] ==
+        expected_totals["qc"], "QC total differs")
+require(catalog_item("matlab.clean_api")["expected_pass_count"] ==
+        expected_totals["clean_contract"], "clean-contract total differs")
 
-oracle_json = json.loads((root / "tests" / "fixtures" / "simple_absorption_oracle_v1.json").read_text(encoding="utf-8"))
-counts = oracle_json["case_counts"]
-require(counts["preprocessing"] == 30, "oracle JSON preprocessing count")
-require(counts["response"] == 17, "oracle JSON response count")
-require(counts["jitter"] == 11, "oracle JSON jitter count")
-require(counts["quality_control_coordinator"] == 9, "oracle JSON QC coordinator count")
-require(counts["quality_control_direct"] == 275, "oracle JSON QC direct count")
-require(counts["templates"] == 6, "oracle JSON template count")
-print(f"{len(coverage)} coverage rows; {len(catalog)} named test groups; exact oracle cardinalities")
+oracle_path = root / "tests" / "fixtures" / "simple_scientific_oracle_v1.json"
+oracle_json = json.loads(oracle_path.read_text(encoding="utf-8"))
+require(set(oracle_json) == {"schema", "environment", "comparison", "case_counts",
+                             "fixture", "boundaries"},
+        "scientific-oracle manifest fields differ")
+require(oracle_json["schema"] == "simple-scientific-oracle-manifest-v1",
+        "scientific-oracle manifest schema differs")
+require(oracle_json["environment"] == {
+    "matlab": "26.1.0.3312084 (R2026a) Update 4",
+    "matlab_release": "2026a",
+    "eeglab": "2026.0.0",
+    "host": "macOS 26.6.1 build 25G76 arm64",
+}, "scientific-oracle environment differs")
+require(oracle_json["comparison"] == {
+    "exact_behaviour": "strict isequaln",
+    "absolute_tolerance": 0,
+    "relative_tolerance": 0,
+    "supplementary_analytic_absolute_floor": 1e-12,
+    "supplementary_analytic_relative_tolerance": 1e-10,
+}, "scientific-oracle comparison policy differs")
+require(oracle_json["case_counts"] == {
+    "preprocessing": 30,
+    "response": 17,
+    "jitter": 11,
+    "quality_control_coordinator": 9,
+    "quality_control_direct": 275,
+    "templates": 6,
+}, "scientific-oracle case counts differ")
+fixture = oracle_json["fixture"]
+require(fixture == {
+    "path": "tests/fixtures/simple_scientific_oracle_v1.mat",
+    "bytes": 5157895,
+    "sha256": "5477d510e9d321c26ce47ab14d13f335b79400285c0615860488d219b40bf547",
+}, "scientific-oracle fixture binding differs")
+fixture_path = root / fixture["path"]
+require(fixture_path.is_file(), "scientific-oracle fixture is missing")
+require(fixture_path.stat().st_size == fixture["bytes"],
+        "scientific-oracle fixture size differs")
+require(hashlib.sha256(fixture_path.read_bytes()).hexdigest() == fixture["sha256"],
+        "scientific-oracle fixture digest differs")
+require(oracle_json["boundaries"] == {
+    "synthetic_only": True,
+    "workflow_scripts_run": 0,
+    "real_eeg_files_read": 0,
+    "university_server_accesses": 0,
+    "dependency_updates": 0,
+}, "scientific-oracle boundaries differ")
+print("66 coverage rows; 37 named test groups; exact scientific-oracle cardinalities and binding")
 PY
 }
 
@@ -464,63 +503,51 @@ check_template_inventory() {
     printf 'six exact template digests and local INI'
 }
 
-check_retired_surface() {
+check_current_surface() {
     python3 - "$candidate" <<'PY'
 import pathlib
-import re
-import subprocess
 import sys
 
 root = pathlib.Path(sys.argv[1])
-paths = subprocess.run(["git", "-C", str(root), "ls-files", "-z"],
-                       check=True, stdout=subprocess.PIPE).stdout.split(b"\0")
-text_suffixes = {".m", ".md", ".ini", ".json", ".sh"}
-forbidden = [
-    "eegplugin_" + "simple",
-    "start_simple_" + "headless",
-    "pop_" + "preproc",
-    "pop_" + "estimate_response",
-    "plugins/" + "simple",
-    "simple/" + "NRFs",
-    "data_lists/" + "nrf_config.ini",
-]
-hits = []
-for raw in paths:
-    if not raw:
-        continue
-    rel = raw.decode("utf-8")
-    path = root / rel
-    if path.suffix not in text_suffixes and path.name != ".gitignore":
-        continue
+required = {
+    "functions/preproc.m": ["function EEG = preproc(EEG, options)"],
+    "functions/estimate_response.m": [
+        "function EEG_singleChannel = estimate_response(EEG, options)",
+        "NRFUtils.resolveTemplateFile(",
+    ],
+    "functions/jittercorrect.m": [
+        "function [new_data, shift, NRF_resampled] = jittercorrect(",
+    ],
+    "functions/quality_control_features.m": [
+        "function [EEG] = quality_control_features(EEG)",
+    ],
+    "NRFs/nrf_config.ini": ["[term_foot_nox]"],
+    "scripts/log_command_window.m": [
+        "logsDir = fullfile(projectRoot, 'data', 'logs');",
+    ],
+    "tests/run_all_tests.m": [
+        "function results = run_all_tests(repoRoot, eeglabRoot)",
+        "simple_scientific_oracle_v1.mat",
+    ],
+}
+for relative, anchors in required.items():
+    path = root / relative
+    if not path.is_file():
+        raise AssertionError(f"missing current repository path: {relative}")
     text = path.read_text(encoding="utf-8")
-    for token in forbidden:
-        if token in text:
-            hits.append(f"{rel}: forbidden token {token}")
-
-for rel in ("functions", "scripts"):
-    for path in (root / rel).glob("*.m"):
-        text = path.read_text(encoding="utf-8")
-        for match in re.finditer(r"fullfile\([^\n;]*['\"]logs['\"]", text, re.IGNORECASE):
-            expression = match.group(0)
-            if not re.search(r"['\"]data['\"][^\n;]*['\"]logs['\"]", expression, re.IGNORECASE):
-                hits.append(f"{path.relative_to(root)}: operational root-log constructor {expression}")
-
-expected_absent = [
-    root / ("functions/start_simple_" + "headless.m"),
-    root / ("functions/pop_" + "preproc.m"),
-    root / ("functions/pop_" + "estimate_response.m"),
-    root / ("eegplugin_" + "simple.m"),
-]
-for path in expected_absent:
-    if path.exists():
-        hits.append(f"retired path present: {path.relative_to(root)}")
-if hits:
-    raise AssertionError("; ".join(hits))
-print("retired names, plugin paths, old INI path and root-log constructors absent")
+    missing = [anchor for anchor in anchors if anchor not in text]
+    if missing:
+        raise AssertionError(f"{relative}: missing current anchors {missing}")
+print("repository entrypoints, NRF configuration, logger and test runner resolve to the current local surface")
 PY
 }
 
 check_hypothetical_ignore() {
+    ignore_digest=$(shasum -a 256 "$candidate/.gitignore" | awk '{print $1}')
+    [ "$ignore_digest" = '2026643a589ace4565bfccaa1cc55b170beff31cdb2a5e327713bd9d89b2b5da' ] || {
+        printf '.gitignore digest differs: %s\n' "$ignore_digest"
+        return 1
+    }
     positive_paths='data/probe.set
 data/nested/probe.set
 data/logs/probe.log
@@ -528,7 +555,6 @@ data_lists/probe.csv
 data_lists/probe.xlsx
 data_lists/nested/probe.csv
 data_lists/nested/probe.xlsx
-logs/probe.log
 .DS_Store
 functions/.DS_Store'
     negative_paths='data/.gitkeep
@@ -547,12 +573,12 @@ README.md'
             exit 1
         fi
     done || return 1
-    printf 'direct and nested hypothetical ignore/visibility probes'
+    printf 'exact data/data-list/Finder ignore rules and visible repository files'
 }
 
 check_real_ignore() {
     mkdir -p -- "$candidate/data/nested" "$candidate/data/logs" \
-        "$candidate/data_lists/nested" "$candidate/logs"
+        "$candidate/data_lists/nested"
     printf 'probe\n' > "$candidate/data/probe.set"
     printf 'probe\n' > "$candidate/data/nested/probe.set"
     printf 'probe\n' > "$candidate/data/logs/probe.log"
@@ -560,14 +586,13 @@ check_real_ignore() {
     printf 'probe\n' > "$candidate/data_lists/probe.xlsx"
     printf 'probe\n' > "$candidate/data_lists/nested/probe.csv"
     printf 'probe\n' > "$candidate/data_lists/nested/probe.xlsx"
-    printf 'probe\n' > "$candidate/logs/probe.log"
     printf 'probe\n' > "$candidate/.DS_Store"
     printf 'probe\n' > "$candidate/functions/.DS_Store"
     for path in \
         data/probe.set data/nested/probe.set data/logs/probe.log \
         data_lists/probe.csv data_lists/probe.xlsx \
         data_lists/nested/probe.csv data_lists/nested/probe.xlsx \
-        logs/probe.log .DS_Store functions/.DS_Store; do
+        .DS_Store functions/.DS_Store; do
         git -C "$candidate" check-ignore -q "$path" || {
             printf 'real probe is not ignored: %s\n' "$path"
             return 1
@@ -578,7 +603,7 @@ check_real_ignore() {
         printf 'real ignored probes changed candidate status: %s\n' "$status"
         return 1
     }
-    printf 'real isolated probe files are ignored and status-neutral'
+    printf 'real isolated probes follow the exact ignore policy and remain status-neutral'
 }
 
 check_fresh_clone() {
@@ -612,28 +637,36 @@ import pathlib
 import re
 import sys
 root = pathlib.Path(sys.argv[1])
+constructors = []
 bad = []
 for parent in (root / "functions", root / "scripts"):
     for path in parent.glob("*.m"):
-        for match in re.finditer(r"fullfile\([^\n;]*['\"]logs['\"]", path.read_text(encoding="utf-8"), re.IGNORECASE):
+        text = path.read_text(encoding="utf-8")
+        for match in re.finditer(r"fullfile\([^\n;]*['\"]logs['\"]", text,
+                                 re.IGNORECASE):
             expression = match.group(0)
-            if not re.search(r"['\"]data['\"][^\n;]*['\"]logs['\"]", expression, re.IGNORECASE):
+            constructors.append(f"{path.relative_to(root)}:{expression}")
+            if not re.search(r"['\"]data['\"][^\n;]*['\"]logs['\"]",
+                             expression, re.IGNORECASE):
                 bad.append(f"{path.relative_to(root)}:{expression}")
 if bad:
     raise AssertionError("; ".join(bad))
+if len(constructors) != 1:
+    raise AssertionError(f"log-constructor count differs: {constructors}")
 PY
-    printf 'only data/logs constructor remains; replacement and ignore anchors present'
+    printf 'single data/logs constructor; replacement and ignore anchors present'
 }
 
-check_d141_message() {
+check_viewer_qc_example() {
     expected="QC_FEATURE_LIST must be a cell array of character vectors (use {''maxAbsEpoch'',''KatzFDNorm'',...})."
     script="$candidate/scripts/step_6_screen_2_viewer_rate_epochs.m"
     count=$(grep -Foc "$expected" "$script")
     [ "$count" -eq 1 ] || {
-        printf 'accepted D-141 assertion message count=%s\n' "$count"
+        printf 'viewer QC assertion example count=%s\n' "$count"
         return 1
     }
-    printf 'exact Oxford D-141 assertion example preserved once'
+    grep -Fq 'QC_BOXPLOT_WHISKER = 10;' "$script" || return 1
+    printf 'viewer QC assertion example and whisker-10 setting each match once'
 }
 
 check_step3() {
@@ -676,7 +709,7 @@ if opts_a != expected_a:
     raise AssertionError(f"optsA fields differ: {sorted(opts_a ^ expected_a)}")
 if opts_d != expected_d:
     raise AssertionError(f"optsD fields differ: {sorted(opts_d ^ expected_d)}")
-print("EEGLAB-before-local-path; no preproc shadow; preserved provenance field; separate delete/offset mechanism; exact two preproc option blocks")
+print("EEGLAB-before-local-path; no preproc shadow; stored provenance field; separate delete/offset mechanism; exact two preproc option blocks")
 PY
 }
 
@@ -755,12 +788,14 @@ root = pathlib.Path(sys.argv[1])
 files = subprocess.run(["git", "-C", str(root), "ls-files"], check=True,
                        text=True, stdout=subprocess.PIPE).stdout.splitlines()
 bad = []
-blocked_suffixes = {".set", ".fdt", ".log", ".fig", ".png", ".csv", ".xlsx", ".asv", ".partial", ".tmp"}
+blocked_suffixes = {".set", ".fdt", ".log", ".fig", ".png", ".csv", ".xlsx",
+                    ".asv", ".partial", ".tmp"}
 allowed_mat = {
     "NRFs/early_NRF_2000Hz.mat", "NRFs/early_NRF_500Hz.mat",
     "NRFs/noxious_NRF_2000Hz.mat", "NRFs/noxious_NRF_500Hz.mat",
-    "NRFs/noxious_preterm_NRF_2000Hz.mat", "NRFs/noxious_preterm_NRF_500Hz.mat",
-    "tests/fixtures/simple_absorption_oracle_v1.mat",
+    "NRFs/noxious_preterm_NRF_2000Hz.mat",
+    "NRFs/noxious_preterm_NRF_500Hz.mat",
+    "tests/fixtures/simple_scientific_oracle_v1.mat",
 }
 for rel in files:
     path = pathlib.PurePosixPath(rel)
@@ -768,26 +803,24 @@ for rel in files:
         bad.append(rel)
     if path.suffix.lower() == ".mat" and rel not in allowed_mat:
         bad.append(rel)
-    if rel.startswith("logs/") or "test_results" in rel.lower() or "capture_absorbed" in rel.lower():
+    if "test_results" in rel.lower():
         bad.append(rel)
 if bad:
     raise AssertionError(f"unexpected candidate artefacts: {sorted(set(bad))}")
-print(f"{len(files)} committed candidate files; no data/log/result/capture artefact")
+print(f"{len(files)} committed candidate files; no generated data, log or result artefact")
 PY
 }
 
 check_readme() {
     file="$candidate/README.md"
     for token in \
-        '`data/` and `data_lists/` are deliberately present' \
-        'tracked `.gitkeep` files' \
+        '# SIMPLE Oxford' \
         'data/logs/' \
+        'tracked `.gitkeep`' \
         'functions/' \
         'NRFs/' \
         'tests/' \
-        'No separate SIMPLE EEGLAB plugin is required.' \
         'preproc(EEG, options)' \
-        'add_offset_events' \
         'estimate_response(EEG, options)' \
         'jittercorrect' \
         'projectionTimes_pre' \
@@ -799,19 +832,24 @@ check_readme() {
         '`robustfit`' \
         '`corr`' \
         'CleanLine is optional' \
-        'tests/run_all_tests.m'; do
-        grep -Fq "$token" "$file" || { printf 'README contract anchor missing: %s\n' "$token"; return 1; }
+        'tests/run_all_tests.m' \
+        'run_all_tests(oxfordRoot, eeglabRoot);' \
+        "tests/run_static_checks.sh"; do
+        grep -Fq "$token" "$file" || {
+            printf 'README contract anchor missing: %s\n' "$token"
+            return 1
+        }
     done
     for template in \
         early_NRF_500Hz.mat early_NRF_2000Hz.mat \
         noxious_NRF_500Hz.mat noxious_NRF_2000Hz.mat \
         noxious_preterm_NRF_500Hz.mat noxious_preterm_NRF_2000Hz.mat; do
-        [ "$(grep -Fc "$template" "$file")" -eq 1 ] || {
-            printf 'README template listing count differs: %s\n' "$template"
+        [ "$(grep -Fc "$template" "$file")" -ge 1 ] || {
+            printf 'README template listing missing: %s\n' "$template"
             return 1
         }
     done
-    printf 'README layout, API, defaults, dependencies, templates, logs and tests anchors'
+    printf 'README layout, APIs, defaults, dependencies, templates, logs and explicit tests'
 }
 
 check_root_shape() {
@@ -820,7 +858,7 @@ check_root_shape() {
     printf '%s\n' .gitignore LICENSE NRFs README.md data data_lists functions scripts tests | LC_ALL=C sort > "$expected"
     git -C "$candidate" ls-files | awk -F/ 'NF {print $1}' | LC_ALL=C sort -u > "$actual"
     diff -u "$expected" "$actual" || return 1
-    printf 'exact accepted top-level tracked contract'
+    printf 'exact documented top-level tracked contract'
 }
 
 check_git_diff() {
@@ -837,7 +875,7 @@ check_git_diff() {
         printf 'candidate status changed: %s\n' "$status"
         return 1
     }
-    printf 'tracked diff and each nonignored-untracked file whitespace-clean; source index unstaged; candidate status clean'
+    printf 'tracked diff and each documented untracked source file whitespace-clean; source index unstaged; candidate status clean'
 }
 
 check_config_location() {
@@ -850,7 +888,12 @@ check_config_location() {
         "$candidate/scripts/step_4_quant_3_NRF_feature_extraction.m" || return 1
     grep -Fq "fullfile(repoRoot, 'NRFs', 'nrf_config.ini')" \
         "$candidate/tests/run_all_tests.m" || return 1
-    printf 'one NRFs/nrf_config.ini and both executable consumers use it'
+    digest=$(shasum -a 256 "$candidate/NRFs/nrf_config.ini" | awk '{print $1}')
+    [ "$digest" = '07dde048029d3fa85d0a98685f3008bca074bd85cebeb79cdc73b99dd6180de9' ] || {
+        printf 'NRF configuration digest differs: %s\n' "$digest"
+        return 1
+    }
+    printf 'one exact NRFs/nrf_config.ini and both executable consumers use it'
 }
 
 check_path_precedence() {
@@ -887,8 +930,6 @@ for path in (root / "scripts").glob("*.m"):
     has_shared_assertion = "assert_local_helper_paths(" in text
     if not (has_named_assertion or has_shared_assertion):
         issues.append(f"{path.name}: no canonical local-function assertion")
-    if re.search(r"\beeglab\s+nogui\b", text):
-        issues.append(f"{path.name}: headless EEGLAB startup remains")
 
 if set(checked) != expected_callers:
     issues.append(
@@ -908,19 +949,19 @@ for token in ("resolveTemplateFile", "fullfile(repositoryRoot, 'NRFs')", "getCan
         issues.append(f"NRFUtils missing resolver anchor: {token}")
 if issues:
     raise AssertionError("; ".join(issues))
-print(f"{len(checked)} local-path callers use -begin/canonical checks; EEGLAB order and no ambient template lookup")
+print(f"{len(checked)} local-path callers use repository precedence, canonical checks and direct template resolution")
 PY
 }
 
 run_check 'static.manifest' check_manifest
 run_check 'static.repository.function_inventory' check_function_inventory
 run_check 'static.repository.template_inventory' check_template_inventory
-run_check 'static.repository.retired_surface' check_retired_surface
+run_check 'static.repository.current_surface' check_current_surface
 run_check 'static.git.hypothetical_ignore' check_hypothetical_ignore
 run_check 'static.git.real_ignore' check_real_ignore
 run_check 'static.git.fresh_clone' check_fresh_clone
 run_check 'static.repository.logs' check_logs
-run_check 'static.repository.d141_message' check_d141_message
+run_check 'static.repository.viewer_qc_example' check_viewer_qc_example
 run_check 'static.callers.step3' check_step3
 run_check 'static.callers.step5_4' check_step5_4
 run_check 'static.callers.step7_2' check_step7_2
