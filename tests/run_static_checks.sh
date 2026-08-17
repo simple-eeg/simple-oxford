@@ -661,6 +661,10 @@ if positions != sorted(positions) or len(set(positions)) != 4:
     raise AssertionError("Step-3 delete/offset/preproc order differs")
 if text.index("eeglab;") > text.index("addpath(functionsDir, '-begin')"):
     raise AssertionError("Step-3 local path is added before EEGLAB")
+if re.search(r"(?m)^\s*preproc(?:\.[A-Za-z]\w*)*\s*=", text):
+    raise AssertionError("Step-3 workspace variable shadows the preproc function")
+if not re.search(r"(?m)^\s*EEG_pre\.etc\.simple\.preproc\s*=", text):
+    raise AssertionError("Step-3 stored preprocessing provenance field is missing")
 opts_a = set(re.findall(r"optsA\.([A-Za-z]\w*)\s*=", text))
 expected_a = {"reref","refchan","resample","srate","filter","highpass","lowpass",
               "linefilter","linefreq","cleanline","epoching","baseadjust"}
@@ -672,7 +676,7 @@ if opts_a != expected_a:
     raise AssertionError(f"optsA fields differ: {sorted(opts_a ^ expected_a)}")
 if opts_d != expected_d:
     raise AssertionError(f"optsD fields differ: {sorted(opts_d ^ expected_d)}")
-print("EEGLAB-before-local-path; separate delete/offset mechanism; exact two preproc option blocks")
+print("EEGLAB-before-local-path; no preproc shadow; preserved provenance field; separate delete/offset mechanism; exact two preproc option blocks")
 PY
 }
 

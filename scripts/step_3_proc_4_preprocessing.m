@@ -373,10 +373,10 @@ for idx = 1:totalToDo
         end
 
         % Build a scalar provenance struct via dot-assignments (robust to non-scalars)
-        preproc = struct();
-        preproc.applied           = true;
-        preproc.timestamp         = dtISO;
-        preproc.options_requested = PreprocOptions;
+        preprocProvenance = struct();
+        preprocProvenance.applied           = true;
+        preprocProvenance.timestamp         = dtISO;
+        preprocProvenance.options_requested = PreprocOptions;
 
         eff = struct();
         % Block A (continuous cleaning)
@@ -424,8 +424,8 @@ for idx = 1:totalToDo
         eff.final_epoch_ms      = final_epoch_ms;
 
         % Attach effective options into provenance and store on EEG
-        preproc.options_effective = eff;
-        EEG_pre.etc.simple.preproc = preproc;
+        preprocProvenance.options_effective = eff;
+        EEG_pre.etc.simple.preproc = preprocProvenance;
         % -------------------------------------------------------------------------------------------------------
 
         % Save the processed dataset.
