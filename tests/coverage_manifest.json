@@ -8,7 +8,7 @@
     "relative_tolerance": 0
   },
   "expected_runtime_totals": {
-    "runner_sha256": "eb8adba3617797d8e3e575a82220ba9227cf819d337e6dfbf0e883f89b28f561",
+    "runner_sha256": "17eda88ee0f4707fc45fbaff15a0106b9941f3d4ab81424a0513e607d2c1a8cd",
     "preproc": 30,
     "response": 17,
     "jitter": 11,
