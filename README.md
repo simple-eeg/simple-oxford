@@ -143,7 +143,7 @@ filters, marking latency corrections and reviewing channel inventories.
 
 ### Steps 3–7 — SIMPLE framework
 
-The middle block implements the five stages documented in `simple-framework`:
+The middle block implements the five stages documented in `simple`:
 
 | Oxford step | Framework step | Stage |
 |---|---|---|
@@ -153,7 +153,7 @@ The middle block implements the five stages documented in `simple-framework`:
 | Step 6 | Step 4 | manual epoch-channel screening (`screen`) |
 | Step 7 | Step 5 | post-screening checks (`check`) |
 
-These scripts run from this repository. See the `simple-framework` README for
+These scripts run from this repository. See the `simple` README for
 detailed stage inputs, outputs, rationale, manual checkpoints and operating
 rules.
 
