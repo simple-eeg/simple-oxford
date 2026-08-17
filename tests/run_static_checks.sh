@@ -269,14 +269,14 @@ require(manifest.get("comparison_policy") == {
 
 catalog = manifest.get("test_catalog")
 coverage = manifest.get("coverage")
-require(isinstance(catalog, list) and len(catalog) == 37, "test catalog count differs")
-require(isinstance(coverage, list) and len(coverage) == 66, "coverage row count differs")
+require(isinstance(catalog, list) and len(catalog) == 40, "test catalog count differs")
+require(isinstance(coverage, list) and len(coverage) == 71, "coverage row count differs")
 catalog_ids = [item.get("id") for item in catalog]
 require(all(isinstance(x, str) and x for x in catalog_ids), "blank catalog id")
 require(len(catalog_ids) == len(set(catalog_ids)), "duplicate catalog id")
 catalog_by_id = {item["id"]: item for item in catalog}
 
-expected_keys = set(["baseline_routes","cleanline_routes","closure_clone","closure_config","closure_current_surface","closure_function_inventory","closure_generated","closure_git","closure_ignore_hyp","closure_ignore_real","closure_logs","closure_manifest","closure_paths","closure_readme","closure_root","closure_step54","closure_step72","closure_step73","closure_step89","closure_templates","closure_viewer_qc_example","config_profiles_cache","delete_contracts","dependency_missing","dependency_present","epoch_failures","epoch_modes","filter_modes","jitter_edges","jitter_shapes_shifts","jitter_ties_padding","line_frequency_edges","line_off_notch","numeric_results","offset_consistency","offset_mapping_fields","offset_no_event","offset_no_source","offset_oob","offset_report_keys","offset_validation","prep_defaults","prep_empty_array","prep_empty_data","prep_inputs","prep_multi_array","preproc_order_history","preprocessing_caller_contract","qc_coord_schema","qc_direct_matrix","qc_overwrite_array_times","reref_modes","resample_modes","resolver_failures_shadow","resolver_local_explicit","response_channel","response_every_epoch_array","response_inputs_defaults","response_insufficient","response_public_contract","response_rate_grid_bounds","response_scalar_options","response_schema_history","response_xor","templates_six_rates","warning_restoration"])
+expected_keys = set(["baseline_routes","cleanline_routes","closure_clone","closure_config","closure_current_surface","closure_function_inventory","closure_generated","closure_git","closure_ignore_hyp","closure_ignore_real","closure_logs","closure_manifest","closure_paths","closure_readme","closure_root","closure_step54","closure_step72","closure_step73","closure_step89","closure_templates","closure_viewer_qc_example","config_profiles_cache","dataset_registry_paths","delete_contracts","dependency_missing","dependency_present","effective_preprocessing_provenance","epoch_failures","epoch_modes","filter_modes","jitter_edges","jitter_shapes_shifts","jitter_ties_padding","line_frequency_edges","line_off_notch","nrf_clear_persistence","nrf_template_preflight","numeric_results","offset_consistency","offset_mapping_fields","offset_no_event","offset_no_source","offset_oob","offset_report_keys","offset_validation","prep_defaults","prep_empty_array","prep_empty_data","prep_inputs","prep_multi_array","preproc_order_history","preprocessing_caller_contract","qc_coord_schema","qc_direct_matrix","qc_overwrite_array_times","registry_write_preflight","reref_modes","resample_modes","resolver_failures_shadow","resolver_local_explicit","response_channel","response_every_epoch_array","response_inputs_defaults","response_insufficient","response_public_contract","response_rate_grid_bounds","response_scalar_options","response_schema_history","response_xor","templates_six_rates","warning_restoration"])
 actual_keys = [row.get("requirement_key") for row in coverage]
 require(len(actual_keys) == len(set(actual_keys)), "duplicate requirement key")
 require(set(actual_keys) == expected_keys, "required coverage-key set differs")
@@ -360,7 +360,7 @@ for item in catalog:
     require(represented == item["expected_pass_count"],
             f"case/pass count differs: {item['id']}")
 
-expected_totals = {"runner_sha256":"17eda88ee0f4707fc45fbaff15a0106b9941f3d4ab81424a0513e607d2c1a8cd","preproc":30,"response":17,"jitter":11,"qc":284,"clean_contract":18,"extended":120}
+expected_totals = {"runner_sha256":"5857d9ddcedee8ca475d0b410b6cdec9dfa568f89f8b476692dd1a44e811cf9f","preproc":30,"response":17,"jitter":11,"qc":284,"clean_contract":18,"registry":23,"processing_state":9,"extended":120}
 require(manifest.get("expected_runtime_totals") == expected_totals,
         "runtime totals differ from the repository test contract")
 runner_bytes = (root / "tests" / "run_all_tests.m").read_bytes()
@@ -388,6 +388,10 @@ require(catalog_item("matlab.qc.coordinator.oracle")["expected_pass_count"] +
         expected_totals["qc"], "QC total differs")
 require(catalog_item("matlab.clean_api")["expected_pass_count"] ==
         expected_totals["clean_contract"], "clean-contract total differs")
+require(catalog_item("matlab.registry_paths")["expected_pass_count"] ==
+        expected_totals["registry"], "registry-path total differs")
+require(catalog_item("matlab.processing_state")["expected_pass_count"] ==
+        expected_totals["processing_state"], "processing-state total differs")
 
 oracle_path = root / "tests" / "fixtures" / "simple_scientific_oracle_v1.json"
 oracle_json = json.loads(oracle_path.read_text(encoding="utf-8"))
@@ -436,7 +440,7 @@ require(oracle_json["boundaries"] == {
     "university_server_accesses": 0,
     "dependency_updates": 0,
 }, "scientific-oracle boundaries differ")
-print("66 coverage rows; 37 named test groups; exact scientific-oracle cardinalities and binding")
+print("71 coverage rows; 40 named test groups; exact scientific-oracle cardinalities and binding")
 PY
 }
 
@@ -473,11 +477,12 @@ check_function_inventory() {
         ts_average_NRFshifted.m \
         ts_average_simple.m \
         ts_average_woody.m \
-        ts_nrf_overlay.m | LC_ALL=C sort > "$expected"
+        ts_nrf_overlay.m \
+        validate_dataset_registry_paths.m | LC_ALL=C sort > "$expected"
     git -C "$candidate" ls-files functions | sed 's#^functions/##' | LC_ALL=C sort > "$actual"
     diff -u "$expected" "$actual" || return 1
-    [ "$(wc -l < "$actual" | tr -d ' ')" -eq 30 ] || return 1
-    printf 'exact 30-function inventory'
+    [ "$(wc -l < "$actual" | tr -d ' ')" -eq 31 ] || return 1
+    printf 'exact 31-function inventory'
 }
 
 check_template_inventory() {
@@ -521,6 +526,10 @@ required = {
     "functions/quality_control_features.m": [
         "function [EEG] = quality_control_features(EEG)",
     ],
+    "functions/validate_dataset_registry_paths.m": [
+        "function targets = validate_dataset_registry_paths(T, baseDir, stage)",
+        "SIMPLE:DatasetRegistry:CanonicalEscape",
+    ],
     "NRFs/nrf_config.ini": ["[term_foot_nox]"],
     "scripts/log_command_window.m": [
         "logsDir = fullfile(projectRoot, 'data', 'logs');",
@@ -528,6 +537,8 @@ required = {
     "tests/run_all_tests.m": [
         "function results = run_all_tests(repoRoot, eeglabRoot)",
         "simple_scientific_oracle_v1.mat",
+        "results.registry = run_dataset_registry_path_tests(repoRoot);",
+        "results.processing_state = run_processing_state_tests(repoRoot);",
     ],
 }
 for relative, anchors in required.items():
@@ -670,11 +681,22 @@ check_viewer_qc_example() {
 }
 
 check_step3() {
-    python3 - "$candidate/scripts/step_3_proc_4_preprocessing.m" <<'PY'
+    python3 - \
+        "$candidate/scripts/step_3_proc_4_preprocessing.m" \
+        "$candidate/scripts/step_4_quant_3_NRF_feature_extraction.m" \
+        "$candidate/scripts/step_3_proc_3_add_processeds.m" \
+        "$candidate/scripts/step_4_quant_1_QC_feature_extraction.m" \
+        "$candidate/scripts/step_5_sum_1_add_summaries.m" \
+        "$candidate/scripts/step_5_sum_2_summarise_individual.m" <<'PY'
 import pathlib
 import re
 import sys
 text = pathlib.Path(sys.argv[1]).read_text(encoding="utf-8")
+nrf_text = pathlib.Path(sys.argv[2]).read_text(encoding="utf-8")
+add_processed_text = pathlib.Path(sys.argv[3]).read_text(encoding="utf-8")
+qc_text = pathlib.Path(sys.argv[4]).read_text(encoding="utf-8")
+add_summary_text = pathlib.Path(sys.argv[5]).read_text(encoding="utf-8")
+individual_summary_text = pathlib.Path(sys.argv[6]).read_text(encoding="utf-8")
 required = [
     "eeglab;", "addpath(functionsDir, '-begin')", "delete_unwanted_events(",
     "add_offset_events(", "PreprocOptions.epochevents_true",
@@ -698,6 +720,26 @@ if re.search(r"(?m)^\s*preproc(?:\.[A-Za-z]\w*)*\s*=", text):
     raise AssertionError("Step-3 workspace variable shadows the preproc function")
 if not re.search(r"(?m)^\s*EEG_pre\.etc\.simple\.preproc\s*=", text):
     raise AssertionError("Step-3 stored preprocessing provenance field is missing")
+effective_contract = [
+    r"eff\.reref\s*=\s*logical\(optsA\.reref\);",
+    r"if\s+optsA\.reref",
+    r"eff\.refchan\s*=\s*optsA\.refchan;",
+    r"eff\.refchan\s*=\s*\{\};",
+    r"eff\.resample\s*=\s*logical\(optsA\.resample\);",
+]
+missing_effective = [pattern for pattern in effective_contract
+                     if not re.search(pattern, text)]
+if missing_effective:
+    raise AssertionError(
+        f"Step-3 effective provenance does not reflect adjusted options: {missing_effective}")
+for stale in (
+    "eff.reref              = logical(PreprocOptions.reref);",
+    "eff.refchan            = PreprocOptions.refchan;",
+    "eff.resample           = logical(PreprocOptions.resample);",
+):
+    if stale in text:
+        raise AssertionError(
+            f"Step-3 effective provenance still records requested state: {stale}")
 opts_a = set(re.findall(r"optsA\.([A-Za-z]\w*)\s*=", text))
 expected_a = {"reref","refchan","resample","srate","filter","highpass","lowpass",
               "linefilter","linefreq","cleanline","epoching","baseadjust"}
@@ -709,8 +751,127 @@ if opts_a != expected_a:
     raise AssertionError(f"optsA fields differ: {sorted(opts_a ^ expected_a)}")
 if opts_d != expected_d:
     raise AssertionError(f"optsD fields differ: {sorted(opts_d ^ expected_d)}")
-print("EEGLAB-before-local-path; no preproc shadow; stored provenance field; separate delete/offset mechanism; exact two preproc option blocks")
+nrf_contract = [
+    r"had_previous_nrf\s*=\s*false;",
+    r"isfield\(EEG\.epoch\(e\),\s*'NRF'\)",
+    r"~isstruct\(previous_nrf\)\s*\|\|\s*~isempty\(fieldnames\(previous_nrf\)\)",
+    r"had_previous_nrf\s*=\s*true;",
+    r"if\s+fits_done\s*>\s*0\s*\|\|\s*had_previous_nrf",
+]
+missing_nrf = [pattern for pattern in nrf_contract
+               if not re.search(pattern, nrf_text)]
+if missing_nrf:
+    raise AssertionError(
+        f"Step-4.3 does not persist cleared prior NRF state: {missing_nrf}")
+positions = [
+    nrf_text.index("had_previous_nrf = false;"),
+    nrf_text.index("previous_nrf = EEG.epoch(e).NRF;"),
+    nrf_text.index("EEG.epoch(e).NRF = struct();"),
+    nrf_text.index("if fits_done > 0 || had_previous_nrf"),
+]
+if positions != sorted(positions) or len(set(positions)) != 4:
+    raise AssertionError("Step-4.3 prior-NRF detection/clear/save order differs")
+template_contract = [
+    "mappedProfileNames = {};",
+    "values(map.(families{f}))",
+    "activeNRFNames = unique(activeNRFNames, 'stable');",
+    "NRFUtils.resolveTemplateFile(",
+    "Configured NRFName must be a logical basename without a path or extension.",
+]
+missing_templates = [token for token in template_contract
+                     if token not in nrf_text]
+if missing_templates:
+    raise AssertionError(
+        f"Step-4.3 lacks all-template fail-before-write preflight: {missing_templates}")
+preflight_positions = [
+    nrf_text.index("map = NRFUtils.readEpochTypeMapping("),
+    nrf_text.index("mappedProfileNames = {};"),
+    nrf_text.index("Loading dataset list:"),
+    nrf_text.index("for i = 1:N"),
+    nrf_text.index("pop_loadset("),
+    nrf_text.index("pop_saveset("),
+]
+if preflight_positions != sorted(preflight_positions) or len(set(preflight_positions)) != 6:
+    raise AssertionError("Step-4.3 template preflight does not precede every dataset write path")
+processed_call = "validate_dataset_registry_paths(T, baseDir, 'processed');"
+if processed_call not in text or "'validate_dataset_registry_paths'" not in text:
+    raise AssertionError("Step-3.4 lacks full-table processed-target validation")
+preproc_path_positions = [
+    text.index("readtable(dataListPath, opts)"),
+    text.index(processed_call),
+    text.index("for idx = 1:totalToDo"),
+    text.index("mkdir(outDir)"),
+    text.index("pop_saveset("),
+]
+if preproc_path_positions != sorted(preproc_path_positions):
+    raise AssertionError("Step-3.4 path validation does not precede every output write")
+if processed_call not in qc_text or "'validate_dataset_registry_paths'" not in qc_text:
+    raise AssertionError("Step-4.1 lacks full-table processed-target validation")
+qc_path_positions = [
+    qc_text.index("readtable(dataListPath, opts)"),
+    qc_text.index(processed_call),
+    qc_text.index("for idx = 1:totalToDo"),
+    qc_text.index("pop_saveset("),
+]
+if qc_path_positions != sorted(qc_path_positions):
+    raise AssertionError("Step-4.1 path validation does not precede processed-data resaves")
+if processed_call not in nrf_text or "'validate_dataset_registry_paths'" not in nrf_text:
+    raise AssertionError("Step-4.3 lacks full-table processed-target validation")
+nrf_path_positions = [
+    nrf_text.index("readtable(dataListPath, opts)"),
+    nrf_text.index(processed_call),
+    nrf_text.index("for i = 1:N"),
+    nrf_text.index("pop_loadset("),
+    nrf_text.index("pop_saveset("),
+]
+if nrf_path_positions != sorted(nrf_path_positions):
+    raise AssertionError("Step-4.3 path validation does not precede processed-data resaves")
+summary_call = "validate_dataset_registry_paths(T, baseDir, 'summary');"
+for token in ("addpath(functionsDir, '-begin')", summary_call,
+              "expectedValidator = fullfile(functionsDir, "):
+    if token not in add_summary_text:
+        raise AssertionError(
+            f"Step-5.1 lacks repository-bound full-table validation: {token}")
+if add_summary_text.index(summary_call) > add_summary_text.index("writetable(T, fileListPath)"):
+    raise AssertionError("Step-5.1 validates only after rewriting dataset_list.csv")
+for token in ("addpath(functionsFolder, '-begin')", summary_call,
+              "expectedValidator = fullfile(functionsFolder, "):
+    if token not in individual_summary_text:
+        raise AssertionError(
+            f"Step-5.2 lacks repository-bound full-table validation: {token}")
+individual_positions = [
+    individual_summary_text.index("readtable(fileList, opts)"),
+    individual_summary_text.index(summary_call),
+    individual_summary_text.index("for r = 1:N"),
+    individual_summary_text.index("mkdir(outDir)"),
+    individual_summary_text.index("save(out_epochs,"),
+    individual_summary_text.index("writetable(qc_rows, out_qc_csv)"),
+]
+if individual_positions != sorted(individual_positions):
+    raise AssertionError("Step-5.2 path validation does not precede every summary write")
+raw_call = "validate_dataset_registry_paths(T, baseDir, 'raw');"
+for token in ("addpath(functionsDir, '-begin')", raw_call, processed_call,
+              "expectedValidator = fullfile(functionsDir, "):
+    if token not in add_processed_text:
+        raise AssertionError(
+            f"Step-3.3 lacks repository-bound full-table validation: {token}")
+processed_positions = [
+    add_processed_text.index("readtable(fileListPath, opts)"),
+    add_processed_text.index(raw_call),
+    add_processed_text.index("for r = 1:N"),
+    add_processed_text.index(processed_call),
+    add_processed_text.index("writetable(T, fileListPath)"),
+]
+if processed_positions != sorted(processed_positions):
+    raise AssertionError("Step-3.3 source/target validation does not bracket derivation before registry rewrite")
+if "path_raw does not start with" in add_processed_text:
+    raise AssertionError("Step-3.3 retains obsolete warn-and-copy path handling")
+print("adjusted provenance; prior NRF clearing persists; templates preflight; Step-3.3 validates all processed targets before registry rewrite")
 PY
+}
+
+check_processing_safety() {
+    python3 "$candidate/tests/check_processing_safety_contracts.py" "$candidate"
 }
 
 check_step5_4() {
@@ -832,6 +993,7 @@ check_readme() {
         '`robustfit`' \
         '`corr`' \
         'CleanLine is optional' \
+        'Every registry path is validated before a governed write' \
         'tests/run_all_tests.m' \
         'run_all_tests(oxfordRoot, eeglabRoot);' \
         "tests/run_static_checks.sh"; do
@@ -907,9 +1069,12 @@ checked = []
 expected_callers = {
     "step_2_raw_1_get_events.m",
     "step_2_raw_4_create_raw.m",
+    "step_3_proc_3_add_processeds.m",
     "step_3_proc_4_preprocessing.m",
     "step_4_quant_1_QC_feature_extraction.m",
     "step_4_quant_3_NRF_feature_extraction.m",
+    "step_5_sum_1_add_summaries.m",
+    "step_5_sum_2_summarise_individual.m",
     "step_5_sum_4_plot_epochs.m",
     "step_7_check_2_plot_included_epochs.m",
     "step_7_check_3_plot_average_ts.m",
@@ -926,7 +1091,7 @@ for path in (root / "scripts").glob("*.m"):
     eeglab = re.search(r"(?m)^\s*eeglab\s*;", text)
     if eeglab and eeglab.start() > add.start():
         issues.append(f"{path.name}: EEGLAB starts after local addpath")
-    has_named_assertion = "which(" in text and re.search(r"expected(?:Function|NRFUtils|NRFUtilsFile)", text)
+    has_named_assertion = "which(" in text and re.search(r"expected(?:Function|Validator|NRFUtils|NRFUtilsFile)", text)
     has_shared_assertion = "assert_local_helper_paths(" in text
     if not (has_named_assertion or has_shared_assertion):
         issues.append(f"{path.name}: no canonical local-function assertion")
@@ -963,6 +1128,7 @@ run_check 'static.git.fresh_clone' check_fresh_clone
 run_check 'static.repository.logs' check_logs
 run_check 'static.repository.viewer_qc_example' check_viewer_qc_example
 run_check 'static.callers.step3' check_step3
+run_check 'static.repository.processing_safety' check_processing_safety
 run_check 'static.callers.step5_4' check_step5_4
 run_check 'static.callers.step7_2' check_step7_2
 run_check 'static.callers.step7_3' check_step7_3

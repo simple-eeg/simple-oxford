@@ -57,6 +57,14 @@ Scripts that call repository functions start EEGLAB, prepend this checkout's
 resolve there. Do not add `NRFs/` to the MATLAB path; logical template names
 are resolved directly against this repository.
 
+Every registry path is validated before a governed write. Dataset directories
+must be project-relative descendants of the exact `data/raw`,
+`data/processed` or `data/summary` root for their stage; dataset filenames must
+be basenames with the exact lowercase `.set` extension; and processed and all
+four per-dataset summary output targets must be unique. Absolute, traversing,
+separator-ambiguous or path-like targets and symlink-based canonical escapes stop the script
+before any registry, processed-dataset or summary-output write begins.
+
 Most scripts contain an editable Oxford root variable such as `baseDir`,
 `root`, `local_base` or `PROJECT_ROOT`. Set that declaration to the location of
 your checkout before running the script. Run numbered scripts from the
@@ -75,6 +83,7 @@ public entry points include:
 - `quality_control_features` and its 11 `calc_*` feature calculators;
 - `estimate_response(EEG, options)` and `jittercorrect` for NRF estimation;
 - `NRFUtils` for configuration, mapping, template resolution and fit caching;
+- `validate_dataset_registry_paths` for fail-closed dataset and output paths;
 - Curry/XDF conversion and event-reading functions;
 - time-series averaging, NRF-overlay and paired-effect helpers; and
 - diagnostics, plotting and save helpers used by the numbered scripts.
@@ -193,9 +202,10 @@ test establishes technical behaviour; it does not replace those decisions.
 
 `tests/run_all_tests.m` uses synthetic EEG fixtures only. It exercises the
 preprocessing, response, jitter and QC contracts, all six bundled templates,
-path precedence, local template binding and the public APIs in the verified
-MATLAB/EEGLAB environment. It does not read project datasets or run a numbered
-workflow script.
+path precedence, local template binding, registry paths, effective processing
+state, NRF state replacement and the public APIs in the verified MATLAB/EEGLAB
+environment. It does not read project datasets or run a numbered workflow
+script.
 
 From MATLAB, call the runner with explicit roots:
 

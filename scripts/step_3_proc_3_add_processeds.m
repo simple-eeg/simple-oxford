@@ -4,14 +4,14 @@
 %   - For each row (ALL rows treated as included):
 %       * Set/overwrite:
 %           - EEGfile_processed = EEGfile_raw
-%           - path_processed    = path_raw with leading 'data/raw' -> 'data/processed'
+%           - path_processed    = path_raw with exact leading 'data/raw' -> 'data/processed'
 %   - Append the processed columns at the end of the table (remove existing first to keep order):
 %     path_processed, then EEGfile_processed
 %
 % Notes:
 %   - Idempotent: safe to re-run; columns are re-derived and re-appended at the end
 %   - No folder creation here (that will happen in preprocessing)
-%   - Expects the source columns to be present and non-empty for all rows
+%   - Validates every source and derived target before rewriting the table
 
 log_command_window('start');
 clear; clc;
@@ -19,6 +19,18 @@ clear; clc;
 %% Paths
 baseDir      = '/Users/lukebaxter/Developer/simple-eeg/simple-oxford';
 fileListPath = fullfile(baseDir, 'data_lists', 'dataset_list.csv');
+functionsDir = fullfile(baseDir, 'functions');
+
+addpath(functionsDir, '-begin');
+clear validate_dataset_registry_paths
+rehash path
+expectedValidator = fullfile(functionsDir, ...
+    'validate_dataset_registry_paths.m');
+resolvedValidator = which('validate_dataset_registry_paths');
+assert(~isempty(resolvedValidator) && ...
+    strcmp(char(java.io.File(resolvedValidator).getCanonicalPath()), ...
+           char(java.io.File(expectedValidator).getCanonicalPath())), ...
+    'Repository-local dataset-registry validator did not resolve canonically.');
 
 %% Load dataset_list.csv
 fprintf('Loading: %s\n', fileListPath);
@@ -35,6 +47,8 @@ missingCols = setdiff(requiredCols, T.Properties.VariableNames);
 if ~isempty(missingCols)
     error('Missing required columns in dataset_list.csv: %s', strjoin(missingCols, ', '));
 end
+
+validate_dataset_registry_paths(T, baseDir, 'raw');
 
 N = height(T);
 
@@ -57,13 +71,8 @@ for r = 1:N
 
     % Derive processed name/path
     EEGfile_processed(r) = srcName;  % same filename
-    % Prefix swap only: '^data/raw' -> 'data/processed'
+    % Exact validated prefix swap: '^data/raw' -> 'data/processed'
     dstPath = regexprep(srcPath, '^data/raw', 'data/processed');
-
-    % Optional sanity: warn if prefix wasn't matched (path didn't start with data/raw)
-    if ~startsWith(srcPath, "data/raw")
-        fprintf('[warn] Row %d: path_raw does not start with "data/raw": %s\n', r, srcPath);
-    end
 
     path_processed(r) = dstPath;
 
@@ -78,6 +87,9 @@ if ~isempty(toRemove)
 end
 T.path_processed    = path_processed;
 T.EEGfile_processed = EEGfile_processed;
+
+% Validate the complete candidate registry before replacing the CSV.
+validate_dataset_registry_paths(T, baseDir, 'processed');
 
 %% Save
 writetable(T, fileListPath);
