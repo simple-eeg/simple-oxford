@@ -8,7 +8,9 @@
 % - verifies their expected contents,
 % - plots each NRF in its own subplot on a common fake EEG epoch axis,
 % - creates a manuscript-shaped MATLAB summary table,
-% - saves the table as CSV and the figure as a vector PDF under data/results.
+% - saves the table as UTF-8 CSV with a byte-order mark for reliable direct
+%   opening in Microsoft Excel, and saves the figure as a vector PDF under
+%   data/results.
 %
 % Assumptions for each .mat file:
 % - contains variable 'NRF' (numeric vector)
@@ -122,9 +124,9 @@ earlyProcedure      = 'Heel lance';
 noxiousProcedure    = 'Heel lance';
 pretermProcedure    = 'Heel lance';
 
-earlyPublication    = '(Cobo et al., 2022)*';
-noxiousPublication  = '(Hartley et al., 2017)*';
-pretermPublication  = '(van der Vaart et al., 2022)*';
+earlyPublication    = 'Cobo et al., 2022';
+noxiousPublication  = 'Hartley et al., 2017';
+pretermPublication  = 'van der Vaart et al., 2022';
 
 %% ------------------------------------------------------------------------
 % INITIALISE DERIVED SUPPORT STRUCTURES
@@ -347,7 +349,8 @@ if ~isfolder(resultsDir)
     end
 end
 
-writetable(supplementaryTable4, tableOutPath);
+writetable(supplementaryTable4, tableOutPath, 'Encoding', 'UTF-8');
+local_add_utf8_bom(tableOutPath);
 drawnow;
 exportgraphics(nrfFigure, figureOutPath, 'ContentType', 'vector');
 
@@ -355,3 +358,32 @@ fprintf('Saved Supplementary Table 4: %s\n', tableOutPath);
 fprintf('Saved Supplementary Figure 1: %s\n', figureOutPath);
 
 log_command_window('stop');
+
+function local_add_utf8_bom(filePath)
+[fid, message] = fopen(filePath, 'rb');
+if fid < 0
+    error('SimpleOxford:ExcelCsv:OpenFailed', ...
+        'Could not read CSV for Excel encoding: %s', message);
+end
+readerCleanup = onCleanup(@() fclose(fid));
+bytes = fread(fid, Inf, '*uint8');
+clear readerCleanup;
+
+utf8Bom = uint8([239; 187; 191]);
+if numel(bytes) >= 3 && isequal(bytes(1:3), utf8Bom)
+    return;
+end
+
+[fid, message] = fopen(filePath, 'wb');
+if fid < 0
+    error('SimpleOxford:ExcelCsv:OpenFailed', ...
+        'Could not rewrite CSV for Excel encoding: %s', message);
+end
+writerCleanup = onCleanup(@() fclose(fid));
+nWritten = fwrite(fid, [utf8Bom; bytes], 'uint8');
+if nWritten ~= numel(bytes) + numel(utf8Bom)
+    error('SimpleOxford:ExcelCsv:WriteFailed', ...
+        'Could not write the complete Excel-compatible UTF-8 CSV.');
+end
+clear writerCleanup;
+end

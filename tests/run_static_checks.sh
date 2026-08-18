@@ -1011,7 +1011,9 @@ anchors = {
         "SimpleOxford:SampleDetails:UnexpectedCategory",
         "local_type7_quantile(values, 0.25)",
         "local_type7_quantile(values, 0.75)",
-        "writetable(supplementaryTable1, tableOutPath);",
+        '"– Female";',
+        "writetable(supplementaryTable1, tableOutPath, 'Encoding', 'UTF-8');",
+        "local_add_utf8_bom(tableOutPath);",
     ],
     "step_8_gen_2_nrf_details.m": [
         "%% step_8_gen_2_nrf_details.m",
@@ -1025,12 +1027,16 @@ anchors = {
         "pretermN            = 30;",
         "pretermPMAMin       = 30.0;",
         "pretermPMAMax       = 33.6;",
+        "earlyPublication    = 'Cobo et al., 2022';",
+        "noxiousPublication  = 'Hartley et al., 2017';",
+        "pretermPublication  = 'van der Vaart et al., 2022';",
         "'supplementary_table_4_nrf_template_derivation_and_fitting_details.csv'",
         "'supplementary_figure_1_nrf_template_visualisations.pdf'",
         "supplementaryTable4 = table(",
         "'Units', 'centimeters'",
         "'Position', [2 2 15.92 10.13]",
-        "writetable(supplementaryTable4, tableOutPath);",
+        "writetable(supplementaryTable4, tableOutPath, 'Encoding', 'UTF-8');",
+        "local_add_utf8_bom(tableOutPath);",
         "exportgraphics(nrfFigure, figureOutPath, 'ContentType', 'vector');",
     ],
 }
@@ -1043,6 +1049,13 @@ for name, required in anchors.items():
 readme = (root / "README.md").read_text(encoding="utf-8")
 if "data/results/" not in readme:
     raise AssertionError("README does not expose the Step 8 results path")
+for anchor in (
+    "UTF-8 CSV files with a byte-order mark",
+    "en-dash subgroup labels rather than leading ASCII hyphen-minus",
+    "plain author-year Publication values without parentheses or asterisks",
+):
+    if anchor not in readme:
+        raise AssertionError(f"README lacks the Step 8 CSV contract: {anchor}")
 print("two Step 8 manuscript-output scripts; two CSVs, one vector PDF and exact-name logs")
 PY
 }
@@ -1223,6 +1236,9 @@ check_readme() {
         '`supplementary_table_4_nrf_template_derivation_and_fitting_details.csv`' \
         '`supplementary_figure_1_nrf_template_visualisations.pdf`' \
         'Each script starts a fresh exact-name Command Window log' \
+        'UTF-8 CSV files with a byte-order mark' \
+        'en-dash subgroup labels rather than leading ASCII hyphen-minus' \
+        'plain author-year Publication values without parentheses or asterisks' \
         '### Step 9 — Oxford JASP table preparation' \
         '`step_9_jasp_1_data_prep_eeg_qc.m`' \
         '`step_9_jasp_6_add_bvt_cols.m`' \

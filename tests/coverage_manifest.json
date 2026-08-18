@@ -1941,7 +1941,7 @@
       "id": "BASE-GEN-001",
       "requirement_key": "step8_manuscript_outputs",
       "surface": "scripts.step_8_manuscript_outputs",
-      "requirement": "Step 8 contains exactly two manuscript-output scripts: the Petal participant-characteristics utility followed by the NRF visualisation and summary utility; together they save Supplementary Tables 1 and 4 as CSV files and Supplementary Figure 1 as a vector PDF under data/results, retain their MATLAB outputs for inspection and create exact-name replacement logs. Every script starts its logger once as the first executable before clear and stops it once as the final script-body executable after successful completion; rejected inputs may create or replace only that log and never a scientific output.",
+      "requirement": "Step 8 contains exactly two manuscript-output scripts: the Petal participant-characteristics utility followed by the NRF visualisation and summary utility; together they save Supplementary Tables 1 and 4 as UTF-8-BOM CSV files and Supplementary Figure 1 as a vector PDF under data/results, retain their MATLAB outputs for inspection and create exact-name replacement logs. Table 1 uses en-dash subgroup labels rather than leading ASCII hyphen-minus, and Table 4 uses plain author-year Publication values without parentheses or asterisks. Every script starts its logger once as the first executable before clear and stops it once as the final script-body executable after successful completion; rejected inputs may create or replace only that log and never a scientific output.",
       "test_refs": [
         {
           "test_id": "matlab.step8_outputs"

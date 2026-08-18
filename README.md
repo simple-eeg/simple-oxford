@@ -197,6 +197,13 @@ targets. Step 8.1 leaves `participantDetailsTable` and `supplementaryTable1` in
 the workspace; Step 8.2 leaves `supplementaryTable4` and its figure open for
 inspection.
 
+Both Step 8 tables are written as UTF-8 CSV files with a byte-order mark so
+their en dashes and plus/minus symbols display correctly when the files are
+opened directly in Microsoft Excel. Their presentation contracts are:
+
+- Supplementary Table 1: en-dash subgroup labels rather than leading ASCII hyphen-minus;
+- Supplementary Table 4: plain author-year Publication values without parentheses or asterisks.
+
 ### Step 9 — Oxford JASP table preparation
 
 The six Step 9 scripts prepare, combine and annotate Oxford-specific CSV
