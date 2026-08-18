@@ -20,6 +20,7 @@
 % - Optional smoothing affects only peak-latency estimation.
 % - Plotting uses EEG convention with positive values down.
 
+log_command_window('start');
 clear; clc; close all;
 
 %% ------------------------------------------------------------------------
@@ -352,3 +353,5 @@ exportgraphics(nrfFigure, figureOutPath, 'ContentType', 'vector');
 
 fprintf('Saved Supplementary Table 4: %s\n', tableOutPath);
 fprintf('Saved Supplementary Figure 1: %s\n', figureOutPath);
+
+log_command_window('stop');

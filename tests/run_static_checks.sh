@@ -933,9 +933,53 @@ check_step7_3() {
 check_step8_general() {
     python3 - "$candidate" <<'PY'
 import pathlib
+import re
 import sys
 
 root = pathlib.Path(sys.argv[1])
+
+def assert_logger_contract(name, text):
+    start = "log_command_window('start');"
+    stop = "log_command_window('stop');"
+    if text.count(start) != 1 or text.count(stop) != 1:
+        raise AssertionError(
+            f"Logger calls must occur exactly once in {name}"
+        )
+
+    statements = []
+    in_block_comment = False
+    for raw_line in text.splitlines():
+        stripped = raw_line.strip()
+        if stripped.startswith("%{"):
+            in_block_comment = True
+            continue
+        if in_block_comment:
+            if stripped.startswith("%}"):
+                in_block_comment = False
+            continue
+        if re.match(r"^\s*function\b", raw_line):
+            break
+        if not stripped or stripped.startswith("%"):
+            continue
+        code = raw_line.split("%", 1)[0].strip()
+        if code:
+            statements.append(code)
+
+    if not statements or statements[0] != start:
+        raise AssertionError(
+            f"Logger start is not the first executable statement in {name}"
+        )
+    clear_positions = [
+        index for index, statement in enumerate(statements)
+        if re.match(r"^clear(?:\s|;)", statement)
+    ]
+    if not clear_positions or clear_positions[0] <= 0:
+        raise AssertionError(f"Logger start does not precede clear in {name}")
+    if statements[-1] != stop:
+        raise AssertionError(
+            f"Logger stop is not the final script-body executable in {name}"
+        )
+
 expected = [
     "step_8_gen_1_sample_details.m",
     "step_8_gen_2_nrf_details.m",
@@ -947,8 +991,7 @@ for name in expected:
     text = (root / "scripts" / name).read_text(encoding="utf-8")
     if "resultsDir = fullfile(baseDir, 'data', 'results');" not in text:
         raise AssertionError(f"Step 8 script is not bound to data/results: {name}")
-    if "log_command_window(" in text:
-        raise AssertionError(f"Step 8 script unexpectedly creates a log: {name}")
+    assert_logger_contract(name, text)
     destructive = [anchor for anchor in ("delete(", "rmdir(", "movefile(")
                    if anchor in text]
     if destructive:
@@ -1000,16 +1043,60 @@ for name, required in anchors.items():
 readme = (root / "README.md").read_text(encoding="utf-8")
 if "data/results/" not in readme:
     raise AssertionError("README does not expose the Step 8 results path")
-print("two Step 8 manuscript-output scripts; two CSVs and one vector PDF; no logs")
+print("two Step 8 manuscript-output scripts; two CSVs, one vector PDF and exact-name logs")
 PY
 }
 
 check_step9_jasp() {
     python3 - "$candidate" <<'PY'
 import pathlib
+import re
 import sys
 
 root = pathlib.Path(sys.argv[1])
+
+def assert_logger_contract(name, text):
+    start = "log_command_window('start');"
+    stop = "log_command_window('stop');"
+    if text.count(start) != 1 or text.count(stop) != 1:
+        raise AssertionError(
+            f"Logger calls must occur exactly once in {name}"
+        )
+
+    statements = []
+    in_block_comment = False
+    for raw_line in text.splitlines():
+        stripped = raw_line.strip()
+        if stripped.startswith("%{"):
+            in_block_comment = True
+            continue
+        if in_block_comment:
+            if stripped.startswith("%}"):
+                in_block_comment = False
+            continue
+        if re.match(r"^\s*function\b", raw_line):
+            break
+        if not stripped or stripped.startswith("%"):
+            continue
+        code = raw_line.split("%", 1)[0].strip()
+        if code:
+            statements.append(code)
+
+    if not statements or statements[0] != start:
+        raise AssertionError(
+            f"Logger start is not the first executable statement in {name}"
+        )
+    clear_positions = [
+        index for index, statement in enumerate(statements)
+        if re.match(r"^clear(?:\s|;)", statement)
+    ]
+    if not clear_positions or clear_positions[0] <= 0:
+        raise AssertionError(f"Logger start does not precede clear in {name}")
+    if statements[-1] != stop:
+        raise AssertionError(
+            f"Logger stop is not the final script-body executable in {name}"
+        )
+
 expected = [
     "step_9_jasp_1_data_prep_eeg_qc.m",
     "step_9_jasp_2_data_prep_eeg_nrf.m",
@@ -1042,6 +1129,7 @@ for name in expected:
     missing = [anchor for anchor in required if anchor not in text]
     if missing:
         raise AssertionError(f"Step 9 CSV/log contract differs in {name}: {missing}")
+    assert_logger_contract(name, text)
     destructive = [anchor for anchor in ("delete(", "rmdir(", "movefile(")
                    if anchor in text]
     if destructive:
@@ -1134,7 +1222,7 @@ check_readme() {
         '`supplementary_table_1_petal_dataset_characteristics.csv`' \
         '`supplementary_table_4_nrf_template_derivation_and_fitting_details.csv`' \
         '`supplementary_figure_1_nrf_template_visualisations.pdf`' \
-        'Neither script creates a Command Window log' \
+        'Each script starts a fresh exact-name Command Window log' \
         '### Step 9 — Oxford JASP table preparation' \
         '`step_9_jasp_1_data_prep_eeg_qc.m`' \
         '`step_9_jasp_6_add_bvt_cols.m`' \

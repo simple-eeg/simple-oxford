@@ -494,11 +494,11 @@
       "runner_anchor": "run_step8_output_tests",
       "expected_pass_count": 5,
       "cases": [
-        "sample_details_csv",
-        "incomplete_sample_details_rejected",
-        "unexpected_sample_category_rejected",
-        "nrf_details_csv_vector_pdf",
-        "missing_nrf_template_rejected"
+        "sample_details_csv_and_exact_log",
+        "incomplete_sample_details_rejected_with_log_only",
+        "unexpected_sample_category_rejected_with_log_only",
+        "nrf_details_csv_vector_pdf_and_exact_log",
+        "missing_nrf_template_rejected_with_log_only"
       ]
     },
     {
@@ -1926,7 +1926,7 @@
       "id": "BASE-JASP-001",
       "requirement_key": "step9_pain_only_exports",
       "surface": "scripts.step_9_jasp_exports",
-      "requirement": "Step 9 contains exactly six JASP CSV-preparation scripts; its QC and NRF exports expose only the pain-route baseline and heel-lance columns while preserving sorted subjects, values and exclusion-derived missingness, and the complete chain produces the exact repeatable final table through its five owned CSV artifacts under data/results without changing the three Step 8 manuscript artifacts stored alongside them.",
+      "requirement": "Step 9 contains exactly six JASP CSV-preparation scripts; its QC and NRF exports expose only the pain-route baseline and heel-lance columns while preserving sorted subjects, values and exclusion-derived missingness, and the complete chain produces the exact repeatable final table through its five owned CSV artifacts under data/results without changing the three Step 8 manuscript artifacts stored alongside them. Every script starts one exact-name replacement log as its first executable before clear and stops it once as its final script-body executable after successful completion.",
       "test_refs": [
         {
           "test_id": "matlab.step9_exports"
@@ -1941,7 +1941,7 @@
       "id": "BASE-GEN-001",
       "requirement_key": "step8_manuscript_outputs",
       "surface": "scripts.step_8_manuscript_outputs",
-      "requirement": "Step 8 contains exactly two manuscript-output scripts: the Petal participant-characteristics utility followed by the NRF visualisation and summary utility; together they save Supplementary Tables 1 and 4 as CSV files and Supplementary Figure 1 as a vector PDF under data/results, retain their MATLAB outputs for inspection and create no log.",
+      "requirement": "Step 8 contains exactly two manuscript-output scripts: the Petal participant-characteristics utility followed by the NRF visualisation and summary utility; together they save Supplementary Tables 1 and 4 as CSV files and Supplementary Figure 1 as a vector PDF under data/results, retain their MATLAB outputs for inspection and create exact-name replacement logs. Every script starts its logger once as the first executable before clear and stops it once as the final script-body executable after successful completion; rejected inputs may create or replace only that log and never a scientific output.",
       "test_refs": [
         {
           "test_id": "matlab.step8_outputs"

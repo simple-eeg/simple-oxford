@@ -35,8 +35,8 @@ files in version control.
 
 Scripts that call the logging helper write their Command Window diary to
 `data/logs/`. A run replaces the existing log for that script, and all logs
-are ignored by Git. The two Step 8 manuscript-output scripts deliberately do
-not create logs; all six Step 9 JASP-preparation scripts do.
+are ignored by Git. Both Step 8 manuscript-output scripts and all six Step 9
+JASP-preparation scripts create exact-name logs.
 
 ## Software and setup
 
@@ -188,11 +188,14 @@ inspection. They are `step_8_gen_1_sample_details.m` and
 | 8.2 | Summarise and visualise the three NRF templates | the three configured 500-Hz NRF templates | `supplementary_table_4_nrf_template_derivation_and_fitting_details.csv` and `supplementary_figure_1_nrf_template_visualisations.pdf` | 9 rows x 4 columns and a three-panel vector PDF; Supplementary Table 4 and Supplementary Figure 1 |
 
 Run Steps 8.1 and 8.2 in numeric order and stop if either script reports an
-error. Each script validates its required inputs before creating the results
-directory or writing its own targets. A successful rerun replaces those exact
-targets. Neither script creates a Command Window log. Step 8.1 leaves
-`participantDetailsTable` and `supplementaryTable1` in the workspace; Step 8.2
-leaves `supplementaryTable4` and its figure open for inspection.
+error. Each script starts a fresh exact-name Command Window log before clearing
+the Command Window, then validates its required inputs before creating the
+results directory or writing its own scientific targets. A rejected run may
+therefore create or replace only that script's log; it does not create a
+scientific output. A successful rerun replaces its exact log and scientific
+targets. Step 8.1 leaves `participantDetailsTable` and `supplementaryTable1` in
+the workspace; Step 8.2 leaves `supplementaryTable4` and its figure open for
+inspection.
 
 ### Step 9 — Oxford JASP table preparation
 

@@ -32,8 +32,9 @@ function passed = run_sample_details_positive(repoRoot)
 run_fixture_script(fullfile(root, 'scripts', ...
     'step_8_gen_1_sample_details.m'));
 
-assert(~isfolder(fullfile(root, 'data', 'logs')), ...
-    'Step 8.1 created a log directory.');
+logPath = assert_exact_log_inventory(root, ...
+    'step_8_gen_1_sample_details.m');
+assert_log_contains(logPath, "Saved Supplementary Table 1:");
 resultsRoot = fullfile(root, 'data', 'results');
 outputPath = fullfile(resultsRoot, ...
     'supplementary_table_1_petal_dataset_characteristics.csv');
@@ -116,11 +117,15 @@ assert(isequal(savedTable, supplementaryTable1), ...
     'The saved Supplementary Table 1 CSV differs from the workspace table.');
 
 write_text(outputPath, 'obsolete fixture output');
+write_text(logPath, 'obsolete fixture log');
 run_fixture_script(fullfile(root, 'scripts', ...
     'step_8_gen_1_sample_details.m'));
 replacementTable = read_text_table(outputPath);
 assert(isequal(replacementTable, evalin('base', 'supplementaryTable1')), ...
     'Step 8.1 did not replace its existing CSV on a valid rerun.');
+assert_log_contains(logPath, "Saved Supplementary Table 1:");
+assert(~contains(string(fileread(logPath)), "obsolete fixture log"), ...
+    'Step 8.1 appended to rather than replaced its existing log.');
 passed = 1;
 end
 
@@ -142,13 +147,10 @@ catch ME
         'Step 8.2 used the wrong missing-template error: %s', ME.message);
 end
 
-after = snapshot_regular_files(root);
-assert(isequal(before, after), ...
-    'A rejected Step 8.2 fixture changed the file inventory.');
+assert_failure_log_only(root, before, ...
+    'step_8_gen_2_nrf_details.m');
 assert(~isfolder(fullfile(root, 'data', 'results')), ...
     'A rejected Step 8.2 fixture created the results directory.');
-assert(~isfolder(fullfile(root, 'data', 'logs')), ...
-    'A rejected Step 8.2 fixture created a log directory.');
 passed = 1;
 end
 
@@ -157,8 +159,11 @@ function passed = run_nrf_details_positive(repoRoot)
 run_fixture_script(fullfile(root, 'scripts', ...
     'step_8_gen_2_nrf_details.m'));
 
-assert(~isfolder(fullfile(root, 'data', 'logs')), ...
-    'Step 8.2 created a log directory.');
+logPath = assert_exact_log_inventory(root, ...
+    'step_8_gen_2_nrf_details.m');
+assert_log_contains(logPath, [ ...
+    "Saved Supplementary Table 4:", ...
+    "Saved Supplementary Figure 1:"]);
 resultsRoot = fullfile(root, 'data', 'results');
 tablePath = fullfile(resultsRoot, ...
     'supplementary_table_4_nrf_template_derivation_and_fitting_details.csv');
@@ -261,6 +266,7 @@ assert(all(strcmp(get(axesHandles, 'YDir'), 'reverse')), ...
 close(nrfFigure);
 write_text(tablePath, 'obsolete fixture table');
 write_text(figurePath, 'obsolete fixture figure');
+write_text(logPath, 'obsolete fixture log');
 run_fixture_script(fullfile(root, 'scripts', ...
     'step_8_gen_2_nrf_details.m'));
 replacementTable = read_text_table(tablePath);
@@ -271,6 +277,11 @@ replacementPdf = read_binary(figurePath);
 assert(numel(replacementPdf) > 1000 && ...
     isequal(char(replacementPdf(1:5))', '%PDF-'), ...
     'Step 8.2 did not replace its existing PDF on a valid rerun.');
+assert_log_contains(logPath, [ ...
+    "Saved Supplementary Table 4:", ...
+    "Saved Supplementary Figure 1:"]);
+assert(~contains(string(fileread(logPath)), "obsolete fixture log"), ...
+    'Step 8.2 appended to rather than replaced its existing log.');
 passed = 1;
 end
 
@@ -299,13 +310,10 @@ catch ME
     end
 end
 
-after = snapshot_regular_files(root);
-assert(isequal(before, after), ...
-    'A rejected Step 8.1 fixture changed the file inventory.');
+assert_failure_log_only(root, before, ...
+    'step_8_gen_1_sample_details.m');
 assert(~isfolder(fullfile(root, 'data', 'results')), ...
     'A rejected Step 8.1 fixture created the results directory.');
-assert(~isfolder(fullfile(root, 'data', 'logs')), ...
-    'A rejected Step 8.1 fixture created a log directory.');
 passed = 1;
 end
 
@@ -321,6 +329,7 @@ listsRoot = fullfile(root, 'data_lists');
 mkdir(scriptsRoot);
 mkdir(listsRoot);
 
+bind_fixture_logger(repoRoot, scriptsRoot);
 copy_script_with_fixture_root( ...
     fullfile(repoRoot, 'scripts', 'step_8_gen_1_sample_details.m'), ...
     fullfile(scriptsRoot, 'step_8_gen_1_sample_details.m'), root);
@@ -388,6 +397,7 @@ mkdir(scriptsRoot);
 mkdir(functionsRoot);
 mkdir(templatesRoot);
 
+bind_fixture_logger(repoRoot, scriptsRoot);
 copy_script_with_fixture_root( ...
     fullfile(repoRoot, 'scripts', 'step_8_gen_2_nrf_details.m'), ...
     fullfile(scriptsRoot, 'step_8_gen_2_nrf_details.m'), root);
@@ -425,6 +435,34 @@ listing = listing(~[listing.isdir]);
 names = sort({listing.name});
 end
 
+function logPath = assert_exact_log_inventory(root, scriptName)
+[~, scriptBase] = fileparts(scriptName);
+logName = [scriptBase '.log'];
+logsRoot = fullfile(root, 'data', 'logs');
+logPath = fullfile(logsRoot, logName);
+assert(isfile(logPath), ...
+    'The exact Step 8 log was not created: %s', logPath);
+assert(isequal(sorted_file_names(logsRoot, '*'), {logName}), ...
+    'The Step 8 fixture created an unexpected log inventory.');
+end
+
+function assert_log_contains(logPath, requiredMessages)
+contents = string(fileread(logPath));
+for message = string(requiredMessages)
+    assert(contains(contents, message), ...
+        'Step 8 success log lacks its completion message: %s', message);
+end
+end
+
+function assert_failure_log_only(root, before, scriptName)
+logPath = assert_exact_log_inventory(root, scriptName);
+after = snapshot_regular_files(root);
+relativeLogPath = string(erase(logPath, [root filesep]));
+afterWithoutLog = after(after.paths ~= relativeLogPath, :);
+assert(isequal(before, afterWithoutLog), ...
+    'A rejected Step 8 fixture changed something other than its log.');
+end
+
 function snapshot = snapshot_regular_files(root)
 items = dir(fullfile(root, '**', '*'));
 items = items(~[items.isdir]);
@@ -446,7 +484,9 @@ assert(fid >= 0, 'Could not read fixture file: %s', path);
 cleanup = onCleanup(@() fclose(fid)); %#ok<NASGU>
 bytes = fread(fid, Inf, '*uint8');
 md = java.security.MessageDigest.getInstance('SHA-256');
-md.update(bytes);
+if ~isempty(bytes)
+    md.update(bytes);
+end
 digest = lower(string(char(dec2hex(typecast(md.digest(), 'uint8'), 2)')));
 digest = join(digest, "");
 end
@@ -471,10 +511,23 @@ source = regexprep(source, pattern, replacement, 'once');
 write_text(destinationPath, source);
 end
 
+function bind_fixture_logger(repoRoot, scriptsRoot)
+sourcePath = fullfile(repoRoot, 'scripts', 'log_command_window.m');
+destinationPath = fullfile(scriptsRoot, 'log_command_window.m');
+assert(isfile(sourcePath), 'Public logging helper is missing: %s', sourcePath);
+copyfile(sourcePath, destinationPath);
+addpath(scriptsRoot, '-begin');
+clear log_command_window
+rehash path;
+assert(strcmp(which('log_command_window'), destinationPath), ...
+    'The Step 8 fixture did not bind its temporary logger.');
+end
+
 function run_fixture_script(scriptPath)
 scriptFolder = fileparts(scriptPath);
 cd(scriptFolder);
 evalin('base', 'clear;');
+diaryCleanup = onCleanup(@() diary('off')); %#ok<NASGU>
 command = sprintf('run(''%s'');', strrep(scriptPath, '''', ''''''));
 evalin('base', command);
 end
@@ -488,13 +541,14 @@ assert(count == numel(value));
 end
 
 function cleanup_fixture(root, originalFolder, originalPath)
+diary off;
 if isfolder(originalFolder)
     cd(originalFolder);
 end
 evalin('base', 'clear;');
 close all force;
 path(originalPath);
-clear NRFUtils
+clear NRFUtils log_command_window
 if isfolder(root)
     rmdir(root, 's');
 end

@@ -37,6 +37,7 @@
 % The table describes every participant in dataset_list.csv. Percentages
 % therefore use that full participant count as their denominator.
 
+log_command_window('start');
 clear; clc;
 
 %% Paths
@@ -266,6 +267,8 @@ if ~isfolder(resultsDir)
 end
 writetable(supplementaryTable1, tableOutPath);
 fprintf('Saved Supplementary Table 1: %s\n', tableOutPath);
+
+log_command_window('stop');
 
 %% Local functions
 function x = local_clean_text(x)
