@@ -1,4 +1,4 @@
-%% step_8_jasp_9_nrf_details.m
+%% step_9_gen_1_nrf_details.m
 % Read-only inspection script for three EEG NRF templates.
 %
 % This script:
@@ -18,7 +18,6 @@
 % - Optional smoothing affects only peak-latency estimation.
 % - Plotting uses EEG convention with positive values down.
 
-log_command_window('start');
 clear; clc; close all;
 
 %% ------------------------------------------------------------------------
@@ -323,5 +322,3 @@ end
 disp(' ');
 disp('NRF summary table:');
 disp(nrfSummaryTable);
-
-log_command_window('stop');

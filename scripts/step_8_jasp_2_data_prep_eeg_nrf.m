@@ -12,7 +12,7 @@
 %   - subjectID must be present and non-blank (after trimming).
 %   - Exclude must be present and contain only 0/1 (no missing).
 %   - Only allowed eventtype values:
-%       sham_prestim, sham, lance_prestim, lance
+%       lance_prestim, lance
 %   - Only allowed NRFName values:
 %       early_NRF_500Hz, noxious_NRF_500Hz
 %   - Per subject (on included rows only):
@@ -25,8 +25,6 @@
 %
 % Mapping
 %   eventtype:
-%     sham_prestim    -> SL_BL
-%     sham            -> SL_ER
 %     lance_prestim   -> HL_BL
 %     lance           -> HL_ER
 %   NRFName:
@@ -52,15 +50,11 @@ outDir = fullfile(baseDir, 'data', 'jasp');
 outCsv = fullfile(outDir, 'jasp_data_eeg_nrf.csv');
 
 expected_channel   = "CZ";
-expected_eventtype = ["sham_prestim","sham","lance_prestim","lance"];
+expected_eventtype = ["lance_prestim","lance"];
 expected_nrfname   = ["early_NRF_500Hz","noxious_NRF_500Hz"];
 
 OUT_COLS = { ...
     'subjectID', ...
-    'SL_BL_eNRF_mag', ...
-    'SL_BL_nNRF_mag', ...
-    'SL_ER_eNRF_mag', ...
-    'SL_ER_nNRF_mag', ...
     'HL_BL_eNRF_mag', ...
     'HL_BL_nNRF_mag', ...
     'HL_ER_eNRF_mag', ...
@@ -160,11 +154,6 @@ end
 %% 6) Preallocate output arrays
 subjectID = strings(nSub, 1);
 
-SL_BL_eNRF_mag = nan(nSub,1);
-SL_BL_nNRF_mag = nan(nSub,1);
-SL_ER_eNRF_mag = nan(nSub,1);
-SL_ER_nNRF_mag = nan(nSub,1);
-
 HL_BL_eNRF_mag = nan(nSub,1);
 HL_BL_nNRF_mag = nan(nSub,1);
 
@@ -208,17 +197,13 @@ for s = 1:nSub
     % Pull 0-or-1 row for (eventtype, NRFName); error if >1
     % Note: do not use epoch_index.
     req_pairs = [ ...
-        "sham_prestim",  "early_NRF_500Hz"; ...
-        "sham_prestim",  "noxious_NRF_500Hz"; ...
-        "sham",          "early_NRF_500Hz"; ...
-        "sham",          "noxious_NRF_500Hz"; ...
         "lance_prestim", "early_NRF_500Hz"; ...
         "lance_prestim", "noxious_NRF_500Hz"; ...
         "lance",         "early_NRF_500Hz"; ...
         "lance",         "noxious_NRF_500Hz" ...
         ];
 
-    mags = nan(8,1);
+    mags = nan(4,1);
 
     for j = 1:size(req_pairs,1)
         et = req_pairs(j,1);
@@ -246,24 +231,13 @@ for s = 1:nSub
     end
 
     % Unpack by required-pair order (may include NaNs)
-    SL_BL_e_mag = mags(1);
-    SL_BL_n_mag = mags(2);
+    HL_BL_e_mag = mags(1);
+    HL_BL_n_mag = mags(2);
 
-    SL_ER_e_mag = mags(3);
-    SL_ER_n_mag = mags(4);
-
-    HL_BL_e_mag = mags(5);
-    HL_BL_n_mag = mags(6);
-
-    HL_ER_e_mag = mags(7);
-    HL_ER_n_mag = mags(8);
+    HL_ER_e_mag = mags(3);
+    HL_ER_n_mag = mags(4);
 
     % Populate single-condition magnitude columns
-    SL_BL_eNRF_mag(s) = SL_BL_e_mag;
-    SL_BL_nNRF_mag(s) = SL_BL_n_mag;
-    SL_ER_eNRF_mag(s) = SL_ER_e_mag;
-    SL_ER_nNRF_mag(s) = SL_ER_n_mag;
-
     HL_BL_eNRF_mag(s) = HL_BL_e_mag;
     HL_BL_nNRF_mag(s) = HL_BL_n_mag;
 
@@ -274,10 +248,6 @@ end
 %% 8) Assemble output table (fixed column order) and write CSV
 Tout = table( ...
     subjectID, ...
-    SL_BL_eNRF_mag, ...
-    SL_BL_nNRF_mag, ...
-    SL_ER_eNRF_mag, ...
-    SL_ER_nNRF_mag, ...
     HL_BL_eNRF_mag, ...
     HL_BL_nNRF_mag, ...
     HL_ER_eNRF_mag, ...
@@ -290,5 +260,7 @@ Tout.Properties.VariableNames = OUT_COLS;
 Tout = sortrows(Tout, 'subjectID');
 
 writetable(Tout, outCsv);
+fprintf('Wrote Step 8.2 intermediate: %s (%d rows x %d columns)\n', ...
+    outCsv, height(Tout), width(Tout));
 
 log_command_window('stop');

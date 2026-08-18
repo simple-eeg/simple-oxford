@@ -269,14 +269,14 @@ require(manifest.get("comparison_policy") == {
 
 catalog = manifest.get("test_catalog")
 coverage = manifest.get("coverage")
-require(isinstance(catalog, list) and len(catalog) == 40, "test catalog count differs")
-require(isinstance(coverage, list) and len(coverage) == 71, "coverage row count differs")
+require(isinstance(catalog, list) and len(catalog) == 43, "test catalog count differs")
+require(isinstance(coverage, list) and len(coverage) == 73, "coverage row count differs")
 catalog_ids = [item.get("id") for item in catalog]
 require(all(isinstance(x, str) and x for x in catalog_ids), "blank catalog id")
 require(len(catalog_ids) == len(set(catalog_ids)), "duplicate catalog id")
 catalog_by_id = {item["id"]: item for item in catalog}
 
-expected_keys = set(["baseline_routes","cleanline_routes","closure_clone","closure_config","closure_current_surface","closure_function_inventory","closure_generated","closure_git","closure_ignore_hyp","closure_ignore_real","closure_logs","closure_manifest","closure_paths","closure_readme","closure_root","closure_step54","closure_step72","closure_step73","closure_step89","closure_templates","closure_viewer_qc_example","config_profiles_cache","dataset_registry_paths","delete_contracts","dependency_missing","dependency_present","effective_preprocessing_provenance","epoch_failures","epoch_modes","filter_modes","jitter_edges","jitter_shapes_shifts","jitter_ties_padding","line_frequency_edges","line_off_notch","nrf_clear_persistence","nrf_template_preflight","numeric_results","offset_consistency","offset_mapping_fields","offset_no_event","offset_no_source","offset_oob","offset_report_keys","offset_validation","prep_defaults","prep_empty_array","prep_empty_data","prep_inputs","prep_multi_array","preproc_order_history","preprocessing_caller_contract","qc_coord_schema","qc_direct_matrix","qc_overwrite_array_times","registry_write_preflight","reref_modes","resample_modes","resolver_failures_shadow","resolver_local_explicit","response_channel","response_every_epoch_array","response_inputs_defaults","response_insufficient","response_public_contract","response_rate_grid_bounds","response_scalar_options","response_schema_history","response_xor","templates_six_rates","warning_restoration"])
+expected_keys = set(["baseline_routes","cleanline_routes","closure_clone","closure_config","closure_current_surface","closure_function_inventory","closure_generated","closure_git","closure_ignore_hyp","closure_ignore_real","closure_logs","closure_manifest","closure_paths","closure_readme","closure_root","closure_step54","closure_step72","closure_step73","closure_step91","closure_templates","closure_viewer_qc_example","config_profiles_cache","dataset_registry_paths","delete_contracts","dependency_missing","dependency_present","effective_preprocessing_provenance","epoch_failures","epoch_modes","filter_modes","jitter_edges","jitter_shapes_shifts","jitter_ties_padding","line_frequency_edges","line_off_notch","nrf_clear_persistence","nrf_template_preflight","numeric_results","offset_consistency","offset_mapping_fields","offset_no_event","offset_no_source","offset_oob","offset_report_keys","offset_validation","prep_defaults","prep_empty_array","prep_empty_data","prep_inputs","prep_multi_array","preproc_order_history","preprocessing_caller_contract","qc_coord_schema","qc_direct_matrix","qc_overwrite_array_times","registry_write_preflight","reref_modes","resample_modes","resolver_failures_shadow","resolver_local_explicit","response_channel","response_every_epoch_array","response_inputs_defaults","response_insufficient","response_public_contract","response_rate_grid_bounds","response_scalar_options","response_schema_history","response_xor","step8_pain_only_exports","step9_display_only_outputs","templates_six_rates","warning_restoration"])
 actual_keys = [row.get("requirement_key") for row in coverage]
 require(len(actual_keys) == len(set(actual_keys)), "duplicate requirement key")
 require(set(actual_keys) == expected_keys, "required coverage-key set differs")
@@ -360,7 +360,7 @@ for item in catalog:
     require(represented == item["expected_pass_count"],
             f"case/pass count differs: {item['id']}")
 
-expected_totals = {"runner_sha256":"5857d9ddcedee8ca475d0b410b6cdec9dfa568f89f8b476692dd1a44e811cf9f","preproc":30,"response":17,"jitter":11,"qc":284,"clean_contract":18,"registry":23,"processing_state":9,"extended":120}
+expected_totals = {"runner_sha256":"780bdf28add11acd53ab62a269d773782b968b643fef43556d7b7d5b0a26be6c","preproc":30,"response":17,"jitter":11,"qc":284,"clean_contract":18,"registry":23,"processing_state":9,"step8_export":4,"step9_output":3,"extended":120}
 require(manifest.get("expected_runtime_totals") == expected_totals,
         "runtime totals differ from the repository test contract")
 runner_bytes = (root / "tests" / "run_all_tests.m").read_bytes()
@@ -392,6 +392,10 @@ require(catalog_item("matlab.registry_paths")["expected_pass_count"] ==
         expected_totals["registry"], "registry-path total differs")
 require(catalog_item("matlab.processing_state")["expected_pass_count"] ==
         expected_totals["processing_state"], "processing-state total differs")
+require(catalog_item("matlab.step8_exports")["expected_pass_count"] ==
+        expected_totals["step8_export"], "Step-8-export total differs")
+require(catalog_item("matlab.step9_outputs")["expected_pass_count"] ==
+        expected_totals["step9_output"], "Step-9-output total differs")
 
 oracle_path = root / "tests" / "fixtures" / "simple_scientific_oracle_v1.json"
 oracle_json = json.loads(oracle_path.read_text(encoding="utf-8"))
@@ -440,7 +444,7 @@ require(oracle_json["boundaries"] == {
     "university_server_accesses": 0,
     "dependency_updates": 0,
 }, "scientific-oracle boundaries differ")
-print("71 coverage rows; 40 named test groups; exact scientific-oracle cardinalities and binding")
+print("73 coverage rows; 43 named test groups; exact scientific-oracle cardinalities and binding")
 PY
 }
 
@@ -539,6 +543,8 @@ required = {
         "simple_scientific_oracle_v1.mat",
         "results.registry = run_dataset_registry_path_tests(repoRoot);",
         "results.processing_state = run_processing_state_tests(repoRoot);",
+        "results.step8_export = run_step8_export_tests(repoRoot);",
+        "results.step9_output = run_step9_output_tests(repoRoot);",
     ],
 }
 for relative, anchors in required.items():
@@ -924,8 +930,63 @@ check_step7_3() {
     printf 'Step 7.3 compute/plot off/on and resolved-file overlay anchors'
 }
 
-check_step8_9() {
-    file="$candidate/scripts/step_8_jasp_9_nrf_details.m"
+check_step8_jasp() {
+    python3 - "$candidate" <<'PY'
+import pathlib
+import sys
+
+root = pathlib.Path(sys.argv[1])
+expected = [
+    "step_8_jasp_1_data_prep_eeg_qc.m",
+    "step_8_jasp_2_data_prep_eeg_nrf.m",
+    "step_8_jasp_3_data_prep_eeg_combine.m",
+    "step_8_jasp_4_data_prep_other.m",
+    "step_8_jasp_5_data_prep_combine_all.m",
+    "step_8_jasp_6_add_bvt_cols.m",
+]
+actual = sorted(path.name for path in (root / "scripts").glob("step_8_*.m"))
+if actual != expected:
+    raise AssertionError(f"Step 8 JASP script inventory differs: {actual}")
+for name in expected:
+    text = (root / "scripts" / name).read_text(encoding="utf-8")
+    if "writetable(" not in text:
+        raise AssertionError(f"Step 8 script does not produce a CSV: {name}")
+    if "'data', 'jasp'" not in text and "jaspDir" not in text:
+        raise AssertionError(f"Step 8 script is not bound to data/jasp: {name}")
+pain_only_contract = {
+    "step_8_jasp_1_data_prep_eeg_qc.m": [
+        'expected_eventtype = ["lance_prestim","lance"];',
+        'eventtype_order = ["lance_prestim","lance"];',
+        'prefix_order    = ["HL_BL","HL_ER"];',
+    ],
+    "step_8_jasp_2_data_prep_eeg_nrf.m": [
+        'expected_eventtype = ["lance_prestim","lance"];',
+        "'HL_BL_eNRF_mag'",
+        "'HL_ER_nNRF_mag'",
+    ],
+}
+for name, anchors in pain_only_contract.items():
+    text = (root / "scripts" / name).read_text(encoding="utf-8")
+    missing = [anchor for anchor in anchors if anchor not in text]
+    if missing:
+        raise AssertionError(f"pain-only Step 8 contract differs in {name}: {missing}")
+print("six pain-only Step 8 JASP CSV-preparation scripts")
+PY
+}
+
+check_step9_general() {
+    nrf_file="$candidate/scripts/step_9_gen_1_nrf_details.m"
+    sample_file="$candidate/scripts/step_9_gen_2_sample_details.m"
+    [ -f "$nrf_file" ] || return 1
+    [ -f "$sample_file" ] || return 1
+    actual="$(find "$candidate/scripts" -maxdepth 1 -type f -name 'step_9_*.m' -exec basename {} \; | LC_ALL=C sort)"
+    expected="$(printf '%s\n' \
+        step_9_gen_1_nrf_details.m \
+        step_9_gen_2_sample_details.m)"
+    [ "$actual" = "$expected" ] || {
+        printf 'Step 9 script inventory differs:\n%s\n' "$actual"
+        return 1
+    }
     for token in \
         "earlyNRFName    = 'early_NRF_500Hz'" \
         "noxiousNRFName  = 'noxious_NRF_500Hz'" \
@@ -935,9 +996,48 @@ check_step8_9() {
         'thisPath = canonicalNRFFiles{i}' \
         "addpath(functionsDir, '-begin')" \
         'expectedNRFUtilsFile'; do
-        grep -Fq "$token" "$file" || { printf 'missing Step 8.9 anchor: %s\n' "$token"; return 1; }
+        grep -Fq "$token" "$nrf_file" || { printf 'missing Step 9.1 anchor: %s\n' "$token"; return 1; }
     done
-    printf 'Step 8.9 three resolver-bound configurable references and local helper assertion'
+    for token in \
+        '%% step_9_gen_2_sample_details.m' \
+        'participantDetailsTable = table();' \
+        'supplementaryTable1 = table(Characteristic, Value);' \
+        'SimpleOxford:SampleDetails:IncompleteData' \
+        'SimpleOxford:SampleDetails:UnexpectedCategory' \
+        'local_type7_quantile(values, 0.25)' \
+        'local_type7_quantile(values, 0.75)' \
+        'Supplementary Table 1. Petal dataset characteristics.'; do
+        grep -Fq "$token" "$sample_file" || { printf 'missing Step 9.2 anchor: %s\n' "$token"; return 1; }
+    done
+    [ "$(grep -Fc '%% step_9_gen_1_nrf_details.m' "$nrf_file")" -eq 1 ] || return 1
+    [ ! -e "$candidate/scripts/step_8_jasp_9_nrf_details.m" ] || return 1
+    [ ! -e "$candidate/scripts/step_8_jasp_7_sample_details.m" ] || return 1
+    for file in "$nrf_file" "$sample_file"; do
+        for token in \
+            'log_command_window(' \
+            'writetable(' \
+            'writematrix(' \
+            'writecell(' \
+            'save(' \
+            'saveas(' \
+            'savefig(' \
+            'exportgraphics(' \
+            'imwrite(' \
+            'fopen(' \
+            'copyfile(' \
+            'movefile(' \
+            'mkdir(' \
+            'rmdir(' \
+            'delete(' \
+            'system(' \
+            'unix('; do
+            if grep -Fq "$token" "$file"; then
+                printf 'Step 9 script contains a file-writing anchor: %s in %s\n' "$token" "$file"
+                return 1
+            fi
+        done
+    done
+    printf 'two display-only Step 9 manuscript utilities; no scientific file or log writers'
 }
 
 check_unintended_files() {
@@ -994,6 +1094,16 @@ check_readme() {
         '`corr`' \
         'CleanLine is optional' \
         'Every registry path is validated before a governed write' \
+        '### Step 8 — Oxford JASP table preparation' \
+        '`jasp_data_eeg_qc.csv`' \
+        '`jasp_data_eeg_nrf.csv`' \
+        '`jasp_data_eeg.csv`' \
+        '`jasp_data_other.csv`' \
+        '`jasp_data_all.csv` is provisional after Step 8.5' \
+        'later-numbered Step 8 script through Step 8.6' \
+        '### Step 9 — General manuscript outputs' \
+        '`step_9_gen_1_nrf_details.m`' \
+        '`step_9_gen_2_sample_details.m`' \
         'tests/run_all_tests.m' \
         'run_all_tests(oxfordRoot, eeglabRoot);' \
         "tests/run_static_checks.sh"; do
@@ -1080,7 +1190,7 @@ expected_callers = {
     "step_7_check_3_plot_average_ts.m",
     "step_7_check_6_sep_check_qc.m",
     "step_7_check_7_sep_check_nrf.m",
-    "step_8_jasp_9_nrf_details.m",
+    "step_9_gen_1_nrf_details.m",
 }
 for path in (root / "scripts").glob("*.m"):
     text = path.read_text(encoding="utf-8")
@@ -1132,7 +1242,8 @@ run_check 'static.repository.processing_safety' check_processing_safety
 run_check 'static.callers.step5_4' check_step5_4
 run_check 'static.callers.step7_2' check_step7_2
 run_check 'static.callers.step7_3' check_step7_3
-run_check 'static.callers.step8_9' check_step8_9
+run_check 'static.callers.step8_jasp' check_step8_jasp
+run_check 'static.callers.step9_general' check_step9_general
 run_check 'static.repository.unintended_files' check_unintended_files
 run_check 'static.repository.readme' check_readme
 run_check 'static.repository.root_shape' check_root_shape

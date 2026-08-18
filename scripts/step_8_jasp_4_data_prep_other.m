@@ -185,5 +185,7 @@ Tout = sortrows(Tout, 'subjectID');
 
 %% 9) Write CSV (overwrite)
 writetable(Tout, outCsv);
+fprintf('Wrote Step 8.4 intermediate: %s (%d rows x %d columns)\n', ...
+    outCsv, height(Tout), width(Tout));
 
 log_command_window('stop');

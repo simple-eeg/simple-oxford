@@ -13,7 +13,7 @@
 %   - subjectID must be present and non-blank (after trimming).
 %   - Exclude must be present and contain only 0/1 (no missing).
 %   - Only allowed eventtype values:
-%       sham_prestim, sham, lance_prestim, lance
+%       lance_prestim, lance
 %   - Per subject (on included rows only):
 %       exactly one sessionID, exactly one runID, and exactly one channel (after trim + case normalisation),
 %       and channel must match "CZ" case-insensitively (with trimming).
@@ -25,8 +25,6 @@
 %
 % Mapping
 %   eventtype:
-%     sham_prestim    -> SL_BL
-%     sham            -> SL_ER
 %     lance_prestim   -> HL_BL
 %     lance           -> HL_ER
 %
@@ -48,7 +46,7 @@ outDir = fullfile(baseDir, 'data', 'jasp');
 outCsv = fullfile(outDir, 'jasp_data_eeg_qc.csv');
 
 expected_channel   = "CZ";
-expected_eventtype = ["sham_prestim","sham","lance_prestim","lance"];
+expected_eventtype = ["lance_prestim","lance"];
 
 % User-editable list of QC metric columns to extract (case-sensitive; must match CSV column headers)
 expected_qcname = [ ...
@@ -64,8 +62,8 @@ expected_qcname = [ ...
     ];
 
 % Eventtype -> prefix (fixed order for output blocks)
-eventtype_order = ["sham_prestim","sham","lance_prestim","lance"];
-prefix_order    = ["SL_BL","SL_ER","HL_BL","HL_ER"];
+eventtype_order = ["lance_prestim","lance"];
+prefix_order    = ["HL_BL","HL_ER"];
 
 % Build output columns (eventtype blocks, metric order preserved within each block)
 OUT_COLS = cell(1, 1 + numel(prefix_order) * numel(expected_qcname));
@@ -259,5 +257,7 @@ Tout.Properties.VariableNames = OUT_COLS;
 Tout = sortrows(Tout, 'subjectID');
 
 writetable(Tout, outCsv);
+fprintf('Wrote Step 8.1 intermediate: %s (%d rows x %d columns)\n', ...
+    outCsv, height(Tout), width(Tout));
 
 log_command_window('stop');

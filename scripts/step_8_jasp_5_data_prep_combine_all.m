@@ -15,8 +15,10 @@
 %       • then all EEG columns in the exact order from jasp_data_eeg.csv
 %       • then all OTHER columns in the exact order from jasp_data_other.csv (excluding subjectID)
 %   - Sort rows by subjectID before writing.
-%   - Write:
+%   - Write the provisional combined table:
 %       data/jasp/jasp_data_all.csv
+%   - Step 8.6 finalises this same path with the three analysis-membership
+%     columns. Do not import it into JASP until Step 8.6 succeeds.
 
 log_command_window('start');
 clear; clc;
@@ -103,5 +105,7 @@ Tout = sortrows(Tout, 'subjectID');
 
 %% 6) Write output
 writetable(Tout, outCsv);
+fprintf('Wrote Step 8.5 provisional table: %s (%d rows x %d columns)\n', ...
+    outCsv, height(Tout), width(Tout));
 
 log_command_window('stop');

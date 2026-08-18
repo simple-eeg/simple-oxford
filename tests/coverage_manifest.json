@@ -8,7 +8,7 @@
     "relative_tolerance": 0
   },
   "expected_runtime_totals": {
-    "runner_sha256": "5857d9ddcedee8ca475d0b410b6cdec9dfa568f89f8b476692dd1a44e811cf9f",
+    "runner_sha256": "780bdf28add11acd53ab62a269d773782b968b643fef43556d7b7d5b0a26be6c",
     "preproc": 30,
     "response": 17,
     "jitter": 11,
@@ -16,6 +16,8 @@
     "clean_contract": 18,
     "registry": 23,
     "processing_state": 9,
+    "step8_export": 4,
+    "step9_output": 3,
     "extended": 120
   },
   "test_catalog": [
@@ -485,6 +487,33 @@
       ]
     },
     {
+      "id": "matlab.step8_exports",
+      "kind": "matlab-synthetic",
+      "source": "tests/run_step8_export_tests.m",
+      "runner": "tests/run_all_tests.m",
+      "runner_anchor": "run_step8_export_tests",
+      "expected_pass_count": 4,
+      "cases": [
+        "pain_only_qc_export",
+        "pain_only_nrf_export",
+        "complete_six_script_chain",
+        "repeatable_step8_finalization"
+      ]
+    },
+    {
+      "id": "matlab.step9_outputs",
+      "kind": "matlab-synthetic",
+      "source": "tests/run_step9_output_tests.m",
+      "runner": "tests/run_all_tests.m",
+      "runner_anchor": "run_step9_output_tests",
+      "expected_pass_count": 3,
+      "cases": [
+        "sample_details_display",
+        "incomplete_sample_details_rejected",
+        "unexpected_sample_category_rejected"
+      ]
+    },
+    {
       "id": "static.manifest",
       "kind": "static-git",
       "source": "tests/run_static_checks.sh",
@@ -583,11 +612,18 @@
       "runner_anchor": "static.callers.step7_3"
     },
     {
-      "id": "static.callers.step8_9",
+      "id": "static.callers.step8_jasp",
       "kind": "static-git",
       "source": "tests/run_static_checks.sh",
       "runner": "tests/run_static_checks.sh",
-      "runner_anchor": "static.callers.step8_9"
+      "runner_anchor": "static.callers.step8_jasp"
+    },
+    {
+      "id": "static.callers.step9_general",
+      "kind": "static-git",
+      "source": "tests/run_static_checks.sh",
+      "runner": "tests/run_static_checks.sh",
+      "runner_anchor": "static.callers.step9_general"
     },
     {
       "id": "static.repository.unintended_files",
@@ -1885,13 +1921,43 @@
       "category": "repository"
     },
     {
+      "id": "BASE-JASP-001",
+      "requirement_key": "step8_pain_only_exports",
+      "surface": "scripts.step_8_jasp_exports",
+      "requirement": "Step 8 contains exactly six JASP CSV-preparation scripts; its QC and NRF exports expose only the pain-route baseline and heel-lance columns while preserving sorted subjects, values and exclusion-derived missingness, and the complete chain produces the exact repeatable final table through the five intended CSV artifacts.",
+      "test_refs": [
+        {
+          "test_id": "matlab.step8_exports"
+        },
+        {
+          "test_id": "static.callers.step8_jasp"
+        }
+      ],
+      "category": "repository"
+    },
+    {
+      "id": "BASE-GEN-001",
+      "requirement_key": "step9_display_only_outputs",
+      "surface": "scripts.step_9_general_outputs",
+      "requirement": "Step 9 contains exactly two manuscript-output scripts: the NRF visualisation/summary utility and the Petal participant-characteristics/Supplementary-Table-1 utility; both retain their outputs in MATLAB and create no scientific file or log.",
+      "test_refs": [
+        {
+          "test_id": "matlab.step9_outputs"
+        },
+        {
+          "test_id": "static.callers.step9_general"
+        }
+      ],
+      "category": "repository"
+    },
+    {
       "id": "BASE-CLS-012",
-      "requirement_key": "closure_step89",
-      "surface": "scripts.step_8_jasp_9_nrf_details",
+      "requirement_key": "closure_step91",
+      "surface": "scripts.step_9_gen_1_nrf_details",
       "requirement": "All three logical/explicit template references route through the repository resolver.",
       "test_refs": [
         {
-          "test_id": "static.callers.step8_9"
+          "test_id": "static.callers.step9_general"
         },
         {
           "test_id": "matlab.overlay.extended",

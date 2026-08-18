@@ -10,6 +10,8 @@
 %       HL_ER_nNRF_mag_pub
 %       HL_ER_nNRF_mag_pub_Screening
 %   - Overwrite data/jasp/jasp_data_all.csv in place
+%   - This finalises the Step 8 JASP table. Rerun Step 8.6 after any rerun of
+%     Step 8.5 before importing jasp_data_all.csv into JASP.
 %
 % Notes
 %   - The pub XLSX defines the "pub cohort" subject list.
@@ -156,7 +158,8 @@ T.(COL_PUB_SCR) = pubScr;
 writetable(T, csvPath);
 
 %% 8) Summary
-fprintf('\nAdded columns to: %s\n', csvPath);
+fprintf('\nFinalised Step 8 JASP table: %s (%d rows x %d columns)\n', ...
+    csvPath, height(T), width(T));
 fprintf('  %s: Excluded %d / %d\n', COL_SCR, sum(scr == "Excluded"), height(T));
 fprintf('  %s: Included %d / %d\n', COL_PUB_SCR, sum(pubScr == "Included"), height(T));
 
