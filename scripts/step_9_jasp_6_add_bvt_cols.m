@@ -1,4 +1,4 @@
-%% step_8_jasp_6_add_bvt_cols.m
+%% step_9_jasp_6_add_bvt_cols.m
 % Purpose
 %   - Read:  data/results/jasp_data_all.csv
 %   - Read:  data_lists/medscinet_export_petal_pub.xlsx
@@ -10,8 +10,8 @@
 %       HL_ER_nNRF_mag_pub
 %       HL_ER_nNRF_mag_pub_Screening
 %   - Overwrite data/results/jasp_data_all.csv in place
-%   - This finalises the Step 8 JASP table. Rerun Step 8.6 after any rerun of
-%     Step 8.5 before importing jasp_data_all.csv into JASP.
+%   - This finalises the Step 9 JASP table. Rerun Step 9.6 after any rerun of
+%     Step 9.5 before importing jasp_data_all.csv into JASP.
 %
 % Notes
 %   - The pub XLSX defines the "pub cohort" subject list.
@@ -158,7 +158,7 @@ T.(COL_PUB_SCR) = pubScr;
 writetable(T, csvPath);
 
 %% 8) Summary
-fprintf('\nFinalised Step 8 JASP table: %s (%d rows x %d columns)\n', ...
+fprintf('\nFinalised Step 9 JASP table: %s (%d rows x %d columns)\n', ...
     csvPath, height(T), width(T));
 fprintf('  %s: Excluded %d / %d\n', COL_SCR, sum(scr == "Excluded"), height(T));
 fprintf('  %s: Included %d / %d\n', COL_PUB_SCR, sum(pubScr == "Included"), height(T));

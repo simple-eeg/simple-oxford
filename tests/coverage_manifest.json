@@ -8,7 +8,7 @@
     "relative_tolerance": 0
   },
   "expected_runtime_totals": {
-    "runner_sha256": "780bdf28add11acd53ab62a269d773782b968b643fef43556d7b7d5b0a26be6c",
+    "runner_sha256": "c37ba16bf9904c4f00a77c9f6850f2cf482c08b0afbed8f027235b8572019ee8",
     "preproc": 30,
     "response": 17,
     "jitter": 11,
@@ -16,8 +16,8 @@
     "clean_contract": 18,
     "registry": 23,
     "processing_state": 9,
-    "step8_export": 4,
-    "step9_output": 3,
+    "step8_output": 5,
+    "step9_export": 4,
     "extended": 120
   },
   "test_catalog": [
@@ -487,30 +487,32 @@
       ]
     },
     {
-      "id": "matlab.step8_exports",
+      "id": "matlab.step8_outputs",
       "kind": "matlab-synthetic",
-      "source": "tests/run_step8_export_tests.m",
+      "source": "tests/run_step8_output_tests.m",
       "runner": "tests/run_all_tests.m",
-      "runner_anchor": "run_step8_export_tests",
+      "runner_anchor": "run_step8_output_tests",
+      "expected_pass_count": 5,
+      "cases": [
+        "sample_details_csv",
+        "incomplete_sample_details_rejected",
+        "unexpected_sample_category_rejected",
+        "nrf_details_csv_vector_pdf",
+        "missing_nrf_template_rejected"
+      ]
+    },
+    {
+      "id": "matlab.step9_exports",
+      "kind": "matlab-synthetic",
+      "source": "tests/run_step9_export_tests.m",
+      "runner": "tests/run_all_tests.m",
+      "runner_anchor": "run_step9_export_tests",
       "expected_pass_count": 4,
       "cases": [
         "pain_only_qc_export",
         "pain_only_nrf_export",
         "complete_six_script_chain",
-        "repeatable_step8_finalization"
-      ]
-    },
-    {
-      "id": "matlab.step9_outputs",
-      "kind": "matlab-synthetic",
-      "source": "tests/run_step9_output_tests.m",
-      "runner": "tests/run_all_tests.m",
-      "runner_anchor": "run_step9_output_tests",
-      "expected_pass_count": 3,
-      "cases": [
-        "sample_details_display",
-        "incomplete_sample_details_rejected",
-        "unexpected_sample_category_rejected"
+        "repeatable_step9_finalization"
       ]
     },
     {
@@ -612,18 +614,18 @@
       "runner_anchor": "static.callers.step7_3"
     },
     {
-      "id": "static.callers.step8_jasp",
+      "id": "static.callers.step8_general",
       "kind": "static-git",
       "source": "tests/run_static_checks.sh",
       "runner": "tests/run_static_checks.sh",
-      "runner_anchor": "static.callers.step8_jasp"
+      "runner_anchor": "static.callers.step8_general"
     },
     {
-      "id": "static.callers.step9_general",
+      "id": "static.callers.step9_jasp",
       "kind": "static-git",
       "source": "tests/run_static_checks.sh",
       "runner": "tests/run_static_checks.sh",
-      "runner_anchor": "static.callers.step9_general"
+      "runner_anchor": "static.callers.step9_jasp"
     },
     {
       "id": "static.repository.unintended_files",
@@ -1922,42 +1924,42 @@
     },
     {
       "id": "BASE-JASP-001",
-      "requirement_key": "step8_pain_only_exports",
-      "surface": "scripts.step_8_jasp_exports",
-      "requirement": "Step 8 contains exactly six JASP CSV-preparation scripts; its QC and NRF exports expose only the pain-route baseline and heel-lance columns while preserving sorted subjects, values and exclusion-derived missingness, and the complete chain produces the exact repeatable final table through the five intended CSV artifacts under data/results.",
+      "requirement_key": "step9_pain_only_exports",
+      "surface": "scripts.step_9_jasp_exports",
+      "requirement": "Step 9 contains exactly six JASP CSV-preparation scripts; its QC and NRF exports expose only the pain-route baseline and heel-lance columns while preserving sorted subjects, values and exclusion-derived missingness, and the complete chain produces the exact repeatable final table through its five owned CSV artifacts under data/results without changing the three Step 8 manuscript artifacts stored alongside them.",
       "test_refs": [
         {
-          "test_id": "matlab.step8_exports"
+          "test_id": "matlab.step9_exports"
         },
         {
-          "test_id": "static.callers.step8_jasp"
+          "test_id": "static.callers.step9_jasp"
         }
       ],
       "category": "repository"
     },
     {
       "id": "BASE-GEN-001",
-      "requirement_key": "step9_display_only_outputs",
-      "surface": "scripts.step_9_general_outputs",
-      "requirement": "Step 9 contains exactly two manuscript-output scripts: the NRF visualisation/summary utility and the Petal participant-characteristics/Supplementary-Table-1 utility; both retain their outputs in MATLAB and create no scientific file or log.",
+      "requirement_key": "step8_manuscript_outputs",
+      "surface": "scripts.step_8_manuscript_outputs",
+      "requirement": "Step 8 contains exactly two manuscript-output scripts: the Petal participant-characteristics utility followed by the NRF visualisation and summary utility; together they save Supplementary Tables 1 and 4 as CSV files and Supplementary Figure 1 as a vector PDF under data/results, retain their MATLAB outputs for inspection and create no log.",
       "test_refs": [
         {
-          "test_id": "matlab.step9_outputs"
+          "test_id": "matlab.step8_outputs"
         },
         {
-          "test_id": "static.callers.step9_general"
+          "test_id": "static.callers.step8_general"
         }
       ],
       "category": "repository"
     },
     {
       "id": "BASE-CLS-012",
-      "requirement_key": "closure_step91",
-      "surface": "scripts.step_9_gen_1_nrf_details",
+      "requirement_key": "closure_step82",
+      "surface": "scripts.step_8_gen_2_nrf_details",
       "requirement": "All three logical/explicit template references route through the repository resolver.",
       "test_refs": [
         {
-          "test_id": "static.callers.step9_general"
+          "test_id": "static.callers.step8_general"
         },
         {
           "test_id": "matlab.overlay.extended",

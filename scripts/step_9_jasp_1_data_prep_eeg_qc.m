@@ -1,43 +1,39 @@
-%% step_8_jasp_2_data_prep_eeg_nrf.m
+%% step_9_jasp_1_data_prep_eeg_qc.m
 % Purpose
-%   - Read SCREENED pooled NRF features from:
-%       data/summary/screening/pooled_screened_eeg_nrf_features.csv
+%   - Read SCREENED pooled QC features from:
+%       data/summary/screening/pooled_screened_eeg_qc_features.csv
 %   - Apply screening decisions at item-level (Exclude).
 %   - Validate strict dataset assumptions on the INCLUDED subset (hard-stop on violations).
-%   - Reshape to a single-row-per-subject, JASP-ready table with a fixed schema.
+%   - Reshape to a single-row-per-subject, JASP-ready table with a fixed schema:
+%       one QC value per subject per eventtype, for each requested QC metric.
 %   - Create data/results/ if missing, and write:
-%       data/results/jasp_data_eeg_nrf.csv
+%       data/results/jasp_data_eeg_qc.csv
 %
 % Input expectations (hard errors if violated, on INCLUDED subset only)
 %   - subjectID must be present and non-blank (after trimming).
 %   - Exclude must be present and contain only 0/1 (no missing).
 %   - Only allowed eventtype values:
 %       lance_prestim, lance
-%   - Only allowed NRFName values:
-%       early_NRF_500Hz, noxious_NRF_500Hz
 %   - Per subject (on included rows only):
 %       exactly one sessionID, exactly one runID, and exactly one channel (after trim + case normalisation),
 %       and channel must match "CZ" case-insensitively (with trimming).
-%       for each required (eventtype × NRFName) combination:
+%       for each required eventtype:
 %           - 0 rows: allowed (becomes NaN in output)
-%           - 1 row : used (must have finite fglsCoef)
+%           - 1 row : used (QC metric values copied; must be finite)
 %           - >1 rows: ERROR (duplicate ambiguity)
+%   - QC metric columns requested in expected_qcname must exist in the input CSV (case-sensitive match).
 %
 % Mapping
 %   eventtype:
 %     lance_prestim   -> HL_BL
 %     lance           -> HL_ER
-%   NRFName:
-%     early_NRF_500Hz   -> eNRF
-%     noxious_NRF_500Hz -> nNRF
-%   fglsCoef    -> mag
 %
 % Output
 %   - Columns in the exact order specified below.
 %   - Rows sorted by subjectID.
 %   - Output path:
-%       data/results/jasp_data_eeg_nrf.csv
-%   - Subjects are retained even if all their rows are excluded; in that case, all magnitude columns are NaN.
+%       data/results/jasp_data_eeg_qc.csv
+%   - Subjects are retained even if all their rows are excluded; in that case, all QC columns are NaN.
 
 log_command_window('start');
 clear; clc;
@@ -45,21 +41,41 @@ clear; clc;
 %% 0) User config: paths and constants
 baseDir = '/Users/lukebaxter/Developer/simple-eeg/simple-oxford';
 
-inCsv  = fullfile(baseDir, 'data', 'summary', 'screening', 'pooled_screened_eeg_nrf_features.csv');
+inCsv  = fullfile(baseDir, 'data', 'summary', 'screening', 'pooled_screened_eeg_qc_features.csv');
 outDir = fullfile(baseDir, 'data', 'results');
-outCsv = fullfile(outDir, 'jasp_data_eeg_nrf.csv');
+outCsv = fullfile(outDir, 'jasp_data_eeg_qc.csv');
 
 expected_channel   = "CZ";
 expected_eventtype = ["lance_prestim","lance"];
-expected_nrfname   = ["early_NRF_500Hz","noxious_NRF_500Hz"];
 
-OUT_COLS = { ...
-    'subjectID', ...
-    'HL_BL_eNRF_mag', ...
-    'HL_BL_nNRF_mag', ...
-    'HL_ER_eNRF_mag', ...
-    'HL_ER_nNRF_mag' ...
-    };
+% User-editable list of QC metric columns to extract (case-sensitive; must match CSV column headers)
+expected_qcname = [ ...
+    "maxAbsEpoch", ...
+    "sdEpoch", ...
+    "invSdEpoch", ...
+    "MeanAbsDiffNorm", ...
+    "MaxAbsDiffNorm", ...
+    "RobustSlopeNorm", ...
+    "AutoCorrLag1Pos", ...
+    "AutoCorrLag1Neg", ...
+    "KatzFDNorm" ...
+    ];
+
+% Eventtype -> prefix (fixed order for output blocks)
+eventtype_order = ["lance_prestim","lance"];
+prefix_order    = ["HL_BL","HL_ER"];
+
+% Build output columns (eventtype blocks, metric order preserved within each block)
+OUT_COLS = cell(1, 1 + numel(prefix_order) * numel(expected_qcname));
+OUT_COLS{1} = 'subjectID';
+c = 2;
+for p = 1:numel(prefix_order)
+    pref = char(prefix_order(p));
+    for q = 1:numel(expected_qcname)
+        OUT_COLS{c} = sprintf('%s_%s', pref, char(expected_qcname(q)));
+        c = c + 1;
+    end
+end
 
 % Normalised expected channel (trim + upper for case-insensitive match)
 expected_channel_norm = upper(strtrim(expected_channel));
@@ -72,14 +88,14 @@ if ~exist(outDir, 'dir')
     end
 end
 
-%% 2) Read SCREENED pooled NRF CSV (string-stable import)
+%% 2) Read SCREENED pooled QC CSV (string-stable import)
 if ~isfile(inCsv)
     error('Input file not found: %s', inCsv);
 end
 
 opts = detectImportOptions(inCsv, 'PreserveVariableNames', true, 'TextType', 'string');
 
-forceStr = {'subjectID','sessionID','runID','eventtype','channel','NRFName'};
+forceStr = {'subjectID','sessionID','runID','eventtype','channel'};
 for k = 1:numel(forceStr)
     if any(strcmp(opts.VariableNames, forceStr{k}))
         opts = setvaropts(opts, forceStr{k}, 'Type', 'string');
@@ -88,27 +104,34 @@ end
 
 T = readtable(inCsv, opts);
 
-% Validate required columns exist (now includes Exclude)
-needCols = {'subjectID','sessionID','runID','eventtype','channel','NRFName','fglsCoef','Exclude'};
-missing = setdiff(needCols, T.Properties.VariableNames);
+%% 3) Validate required columns exist
+needBase = {'subjectID','sessionID','runID','epoch_index','channel','eventtype','Exclude'};
+missing = setdiff(needBase, T.Properties.VariableNames);
 if ~isempty(missing)
-    error('Missing required columns in pooled_screened_eeg_nrf_features.csv: %s', strjoin(missing, ', '));
+    error('Missing required columns in pooled_screened_eeg_qc_features.csv: %s', strjoin(missing, ', '));
 end
 
-% Normalise identifier columns: string + trim; treat missing as ""
+% QC metric columns requested must exist (case-sensitive match)
+qcCols = cellstr(expected_qcname);
+missingQC = setdiff(qcCols, T.Properties.VariableNames);
+if ~isempty(missingQC)
+    error('Requested QC metric column(s) not found in pooled_screened_eeg_qc_features.csv: %s', strjoin(missingQC, ', '));
+end
+
+%% 4) Normalise key text columns
 for i = 1:numel(forceStr)
-    c = forceStr{i};
-    T.(c) = strtrim(string(T.(c)));
-    T.(c)(ismissing(T.(c))) = "";
+    cName = forceStr{i};
+    T.(cName) = strtrim(string(T.(cName)));
+    T.(cName)(ismissing(T.(cName))) = "";
 end
 
-% Hard error on blank subjectID (pre-filter; this is a data integrity issue)
+% Hard error on blank subjectID (data integrity issue)
 if any(T.subjectID == "")
     idx = find(T.subjectID == "", 1, 'first');
     error('Blank subjectID detected (after trimming) at input row %d. Aborting.', idx);
 end
 
-% Coerce Exclude to numeric 0/1 and validate
+%% 5) Coerce and validate Exclude as 0/1
 ex = T.Exclude;
 if islogical(ex)
     ex = double(ex);
@@ -128,46 +151,40 @@ if any(~ismember(ex, [0 1]))
 end
 T.Exclude = ex;
 
-%% 3) Subject list (from ALL rows), sorted
+%% 6) Subject list from ALL rows (retain fully excluded subjects)
 subjects = unique(T.subjectID);
 subjects = sort(subjects);
 nSub = numel(subjects);
 
-%% 4) Filter to INCLUDED rows only (Exclude == 0) for magnitude extraction
+%% 7) Included-only table for extraction and strict checks
 Tincl = T(T.Exclude == 0, :);
 
-%% 5) Global strict validation for unexpected eventtype/NRFName (INCLUDED subset only)
+% Global strict validation on included rows only
 if ~isempty(Tincl)
     u_et = unique(Tincl.eventtype);
     bad_et = setdiff(u_et, expected_eventtype);
     if ~isempty(bad_et)
         error('Unexpected eventtype value(s) found (included rows only): %s', strjoin(cellstr(bad_et), ', '));
     end
-
-    u_nn = unique(Tincl.NRFName);
-    bad_nn = setdiff(u_nn, expected_nrfname);
-    if ~isempty(bad_nn)
-        error('Unexpected NRFName value(s) found (included rows only): %s', strjoin(cellstr(bad_nn), ', '));
-    end
 end
 
-%% 6) Preallocate output arrays
-subjectID = strings(nSub, 1);
+%% 8) Preallocate output arrays (one row per subject)
+subjectID = subjects;
 
-HL_BL_eNRF_mag = nan(nSub,1);
-HL_BL_nNRF_mag = nan(nSub,1);
+nQC = numel(expected_qcname);
+nPref = numel(prefix_order);
 
-HL_ER_eNRF_mag = nan(nSub,1);
-HL_ER_nNRF_mag = nan(nSub,1);
+% Store outputs in a numeric matrix aligned to OUT_COLS(2:end):
+% [nSub x (nPref*nQC)], initialised to NaN
+Y = nan(nSub, nPref * nQC);
 
-%% 7) Loop subjects and build rows
+%% 9) Per-subject extraction (no aggregation)
 for s = 1:nSub
     sid = subjects(s);
-    subjectID(s) = sid;
 
     Ts = Tincl(Tincl.subjectID == sid, :);
 
-    % If this subject has no included rows, keep the row (all magnitudes remain NaN).
+    % If no included rows for this subject, keep row with NaNs.
     if isempty(Ts)
         continue
     end
@@ -194,65 +211,45 @@ for s = 1:nSub
         error('Subject %s: expected channel "%s" (case-insensitive, trimmed), found "%s".', sid, expected_channel, u_ch(1));
     end
 
-    % Pull 0-or-1 row for (eventtype, NRFName); error if >1
-    % Note: do not use epoch_index.
-    req_pairs = [ ...
-        "lance_prestim", "early_NRF_500Hz"; ...
-        "lance_prestim", "noxious_NRF_500Hz"; ...
-        "lance",         "early_NRF_500Hz"; ...
-        "lance",         "noxious_NRF_500Hz" ...
-        ];
+    % For each eventtype in fixed order, expect 0 or 1 included row (no aggregation)
+    for p = 1:nPref
+        et = eventtype_order(p);
 
-    mags = nan(4,1);
-
-    for j = 1:size(req_pairs,1)
-        et = req_pairs(j,1);
-        nn = req_pairs(j,2);
-
-        mask = (Ts.eventtype == et) & (Ts.NRFName == nn);
-        nmatch = sum(mask);
+        Te = Ts(Ts.eventtype == et, :);
+        nmatch = height(Te);
 
         if nmatch > 1
-            error('Subject %s: duplicate included rows for (eventtype=%s, NRFName=%s), found %d.', sid, et, nn, nmatch);
+            error('Subject %s: duplicate included rows for eventtype=%s, found %d.', sid, et, nmatch);
         elseif nmatch == 0
-            % Missing after exclusion (or absent in source): leave NaN
+            % Missing after exclusion (or absent in source): leave NaNs for this prefix block
             continue
         end
 
-        row = Ts(mask, :);
+        % Exactly one row: copy requested QC metrics (must be finite)
+        for q = 1:nQC
+            qc = expected_qcname(q);
 
-        mag = double(row.fglsCoef);
+            val = double(Te.(char(qc)));
 
-        if ~isfinite(mag)
-            error('Subject %s: non-finite fglsCoef for (eventtype=%s, NRFName=%s).', sid, et, nn);
+            if ~isfinite(val)
+                error('Subject %s: non-finite QC value for eventtype=%s, metric=%s.', sid, et, qc);
+            end
+
+            % Column index into Y: eventtype block then metric within block
+            col = (p-1)*nQC + q;
+            Y(s, col) = val;
         end
-
-        mags(j) = mag;
     end
-
-    % Unpack by required-pair order (may include NaNs)
-    HL_BL_e_mag = mags(1);
-    HL_BL_n_mag = mags(2);
-
-    HL_ER_e_mag = mags(3);
-    HL_ER_n_mag = mags(4);
-
-    % Populate single-condition magnitude columns
-    HL_BL_eNRF_mag(s) = HL_BL_e_mag;
-    HL_BL_nNRF_mag(s) = HL_BL_n_mag;
-
-    HL_ER_eNRF_mag(s) = HL_ER_e_mag;
-    HL_ER_nNRF_mag(s) = HL_ER_n_mag;
 end
 
-%% 8) Assemble output table (fixed column order) and write CSV
-Tout = table( ...
-    subjectID, ...
-    HL_BL_eNRF_mag, ...
-    HL_BL_nNRF_mag, ...
-    HL_ER_eNRF_mag, ...
-    HL_ER_nNRF_mag ...
-    );
+%% 10) Assemble output table and write CSV
+Tout = table(subjectID);
+
+% Add numeric columns in OUT_COLS order (eventtype blocks, metric order preserved)
+varNames = OUT_COLS(2:end);
+for k = 1:numel(varNames)
+    Tout.(varNames{k}) = Y(:, k);
+end
 
 Tout.Properties.VariableNames = OUT_COLS;
 
@@ -260,7 +257,7 @@ Tout.Properties.VariableNames = OUT_COLS;
 Tout = sortrows(Tout, 'subjectID');
 
 writetable(Tout, outCsv);
-fprintf('Wrote Step 8.2 intermediate: %s (%d rows x %d columns)\n', ...
+fprintf('Wrote Step 9.1 intermediate: %s (%d rows x %d columns)\n', ...
     outCsv, height(Tout), width(Tout));
 
 log_command_window('stop');

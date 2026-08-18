@@ -33,8 +33,10 @@ files. Every runtime descendant of `data/` is local and ignored by Git. CSV and
 XLSX files anywhere beneath `data_lists/` are also ignored. Do not put data
 files in version control.
 
-Each numbered script writes its Command Window diary to `data/logs/`. A run
-replaces the existing log for that script, and all logs are ignored by Git.
+Scripts that call the logging helper write their Command Window diary to
+`data/logs/`. A run replaces the existing log for that script, and all logs
+are ignored by Git. The two Step 8 manuscript-output scripts deliberately do
+not create logs; all six Step 9 JASP-preparation scripts do.
 
 ## Software and setup
 
@@ -173,41 +175,52 @@ fits. Step 5 creates individual and pooled summaries. Step 6 creates the fixed
 screening package, records manual decisions and applies them to pooled outputs.
 Step 7 provides display and machine-readable checks of the screened results.
 
-### Step 8 — Oxford JASP table preparation
+### Step 8 — General manuscript outputs
 
-The six Step 8 scripts prepare, combine and annotate Oxford-specific CSV
+The two Step 8 scripts create manuscript-ready tables and a figure under
+`data/results/` while retaining the corresponding MATLAB tables or figure for
+inspection. They are `step_8_gen_1_sample_details.m` and
+`step_8_gen_2_nrf_details.m`.
+
+| Script | Responsibility | Inputs | Outputs | Expected current Petal result |
+|---|---|---|---|---|
+| 8.1 | Create Petal participant characteristics | `dataset_list.csv` and `medscinet_export_petal.xlsx` | `supplementary_table_1_petal_dataset_characteristics.csv` | 15 rows x 2 columns; Supplementary Table 1 |
+| 8.2 | Summarise and visualise the three NRF templates | the three configured 500-Hz NRF templates | `supplementary_table_4_nrf_template_derivation_and_fitting_details.csv` and `supplementary_figure_1_nrf_template_visualisations.pdf` | 9 rows x 4 columns and a three-panel vector PDF; Supplementary Table 4 and Supplementary Figure 1 |
+
+Run Steps 8.1 and 8.2 in numeric order and stop if either script reports an
+error. Each script validates its required inputs before creating the results
+directory or writing its own targets. A successful rerun replaces those exact
+targets. Neither script creates a Command Window log. Step 8.1 leaves
+`participantDetailsTable` and `supplementaryTable1` in the workspace; Step 8.2
+leaves `supplementaryTable4` and its figure open for inspection.
+
+### Step 9 — Oxford JASP table preparation
+
+The six Step 9 scripts prepare, combine and annotate Oxford-specific CSV
 tables for later analysis in JASP. They use the screened EEG results and study
-metadata and write under `data/results/`.
+metadata and write under `data/results/`. They are numbered
+`step_9_jasp_1_data_prep_eeg_qc.m` through
+`step_9_jasp_6_add_bvt_cols.m`.
 
 | Script | Responsibility | Output | Expected current Petal result |
 |---|---|---|---|
-| 8.1 | Reshape screened QC features by participant | `jasp_data_eeg_qc.csv` | 104 rows x 19 columns; intermediate |
-| 8.2 | Reshape screened NRF features by participant | `jasp_data_eeg_nrf.csv` | 104 rows x 5 columns; intermediate |
-| 8.3 | Match and combine the QC and NRF tables | `jasp_data_eeg.csv` | 104 rows x 23 columns; intermediate |
-| 8.4 | Derive trial arm and heel-lance sleep state | `jasp_data_other.csv` | 114 rows x 3 columns; intermediate, including 10 metadata-only records |
-| 8.5 | Match study metadata to the EEG participants | `jasp_data_all.csv` | 104 rows x 25 columns; provisional |
-| 8.6 | Add current-screening and publication-membership columns | `jasp_data_all.csv` | 104 rows x 28 columns; final JASP endpoint |
+| 9.1 | Reshape screened QC features by participant | `jasp_data_eeg_qc.csv` | 104 rows x 19 columns; intermediate |
+| 9.2 | Reshape screened NRF features by participant | `jasp_data_eeg_nrf.csv` | 104 rows x 5 columns; intermediate |
+| 9.3 | Match and combine the QC and NRF tables | `jasp_data_eeg.csv` | 104 rows x 23 columns; intermediate |
+| 9.4 | Derive trial arm and heel-lance sleep state | `jasp_data_other.csv` | 114 rows x 3 columns; intermediate, including 10 metadata-only records |
+| 9.5 | Match study metadata to the EEG participants | `jasp_data_all.csv` | 104 rows x 25 columns; provisional |
+| 9.6 | Add current-screening and publication-membership columns | `jasp_data_all.csv` | 104 rows x 28 columns; final JASP endpoint |
 
-Run Steps 8.1--8.6 in numeric order and stop if any script reports an error.
-The files from Steps 8.1--8.4 are retained intermediates.
-`jasp_data_all.csv` is provisional after Step 8.5 and becomes complete only
-after Step 8.6 succeeds. If any Step 8 script is rerun, rerun every
-later-numbered Step 8 script through Step 8.6 before importing the final file
-into JASP. Each script replaces its CSV target and exact-name command-window
+Run Steps 9.1--9.6 in numeric order and stop if any script reports an error.
+The files from Steps 9.1--9.4 are retained intermediates.
+`jasp_data_all.csv` is provisional after Step 9.5 and becomes complete only
+after Step 9.6 succeeds. If any Step 9 script is rerun, rerun every
+later-numbered Step 9 script through Step 9.6 before importing the final file
+into JASP. Each script replaces its CSV target and exact-name Command Window
 log, so the presence of an older output does not establish that a failed
-rerun succeeded. Step 8 does not create general manuscript figures or summary
-tables.
-
-### Step 9 — General manuscript outputs
-
-Step 9 is outside the reusable framework and the Oxford JASP-preparation
-chain. It is reserved for general or manuscript-specific figures, tables and
-related utilities. `step_9_gen_1_nrf_details.m` visualises the three NRF
-templates and creates their summary table in MATLAB.
-`step_9_gen_2_sample_details.m` creates the participant-level Petal
-characteristics table and displays Supplementary Table 1 in MATLAB. These
-scripts leave their figures and tables open or in the workspace for the user;
-they do not save scientific output files or logs.
+rerun succeeded. The five Step 9 `jasp_data_*.csv` files coexist with the
+three Step 8 manuscript artifacts in `data/results/`; Step 9 does not remove
+or replace the Step 8 files.
 
 ## User decisions and scientific boundaries
 
@@ -215,7 +228,7 @@ The codebase exposes settings beyond the Petal paper route. Review enabled and
 disabled user options rather than assuming the checked-in settings are
 appropriate for another dataset. In particular, confirm event mappings,
 channels, sampling rates, filters, epoch and baseline windows, NRF profiles,
-screening settings, exclusion handling, aggregation choices and Step 8
+screening settings, exclusion handling, aggregation choices and Step 9 export
 selections.
 
 The core processing unit is one analysed event-channel instance. Group-level
@@ -232,11 +245,13 @@ test establishes technical behaviour; it does not replace those decisions.
 `tests/run_all_tests.m` uses synthetic EEG fixtures only. It exercises the
 preprocessing, response, jitter and QC contracts, all six bundled templates,
 path precedence, local template binding, registry paths, effective processing
-state, NRF state replacement, the complete pain-only Step 8 six-script CSV
-chain, the display-only Step 9 sample-details output and the public APIs in the
+state, NRF state replacement, the two Step 8 manuscript-output routes, the
+complete pain-only Step 9 six-script CSV chain and the public APIs in the
 verified MATLAB/EEGLAB environment. The Step 8 and Step 9 tests run temporary
-copies of the relevant scripts against synthetic fixtures. The suite does not
-read project datasets or run a numbered script against project data.
+copies of the relevant scripts against synthetic fixtures. They verify the
+three Step 8 manuscript artifacts, including the vector-PDF contract, and the
+five Step 9 JASP CSV artifacts. The suite does not read project datasets or
+run a numbered script against project data.
 Run it in a dedicated MATLAB session because the temporary script-interface
 fixtures intentionally use ordinary script/base-workspace semantics and clear
 that base workspace.

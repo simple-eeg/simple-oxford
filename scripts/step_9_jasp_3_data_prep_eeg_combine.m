@@ -1,4 +1,4 @@
-%% step_8_jasp_3_data_prep_eeg_combine.m
+%% step_9_jasp_3_data_prep_eeg_combine.m
 % Purpose
 %   - Read:
 %       data/results/jasp_data_eeg_qc.csv
@@ -114,7 +114,7 @@ Tout = sortrows(Tout, 'subjectID');
 
 %% 6) Write output
 writetable(Tout, outCsv);
-fprintf('Wrote Step 8.3 intermediate: %s (%d rows x %d columns)\n', ...
+fprintf('Wrote Step 9.3 intermediate: %s (%d rows x %d columns)\n', ...
     outCsv, height(Tout), width(Tout));
 
 log_command_window('stop');

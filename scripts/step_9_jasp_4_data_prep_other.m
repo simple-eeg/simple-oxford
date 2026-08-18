@@ -1,4 +1,4 @@
-%% step_8_jasp_4_data_prep_other.m
+%% step_9_jasp_4_data_prep_other.m
 % Purpose
 %   - Read upstream MedSciNet export:
 %       data_lists/medscinet_export_petal.xlsx
@@ -185,7 +185,7 @@ Tout = sortrows(Tout, 'subjectID');
 
 %% 9) Write CSV (overwrite)
 writetable(Tout, outCsv);
-fprintf('Wrote Step 8.4 intermediate: %s (%d rows x %d columns)\n', ...
+fprintf('Wrote Step 9.4 intermediate: %s (%d rows x %d columns)\n', ...
     outCsv, height(Tout), width(Tout));
 
 log_command_window('stop');

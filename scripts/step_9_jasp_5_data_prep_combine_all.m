@@ -1,4 +1,4 @@
-%% step_8_jasp_5_data_prep_combine_all.m
+%% step_9_jasp_5_data_prep_combine_all.m
 % Purpose
 %   - Read:
 %       data/results/jasp_data_eeg.csv
@@ -17,8 +17,8 @@
 %   - Sort rows by subjectID before writing.
 %   - Write the provisional combined table:
 %       data/results/jasp_data_all.csv
-%   - Step 8.6 finalises this same path with the three analysis-membership
-%     columns. Do not import it into JASP until Step 8.6 succeeds.
+%   - Step 9.6 finalises this same path with the three analysis-membership
+%     columns. Do not import it into JASP until Step 9.6 succeeds.
 
 log_command_window('start');
 clear; clc;
@@ -105,7 +105,7 @@ Tout = sortrows(Tout, 'subjectID');
 
 %% 6) Write output
 writetable(Tout, outCsv);
-fprintf('Wrote Step 8.5 provisional table: %s (%d rows x %d columns)\n', ...
+fprintf('Wrote Step 9.5 provisional table: %s (%d rows x %d columns)\n', ...
     outCsv, height(Tout), width(Tout));
 
 log_command_window('stop');

@@ -1,12 +1,14 @@
-%% step_9_gen_1_nrf_details.m
-% Read-only inspection script for three EEG NRF templates.
+%% step_8_gen_2_nrf_details.m
+% Create and save:
+%   Supplementary Table 4. NRF template-derivation and fitting details.
+%   Supplementary Figure 1. NRF template visualisations.
 %
 % This script:
 % - loads three existing NRF .mat files,
-% - verifies expected contents,
+% - verifies their expected contents,
 % - plots each NRF in its own subplot on a common fake EEG epoch axis,
-% - creates a compact MATLAB summary table,
-% - saves nothing, and modifies nothing on disk.
+% - creates a manuscript-shaped MATLAB summary table,
+% - saves the table as CSV and the figure as a vector PDF under data/results.
 %
 % Assumptions for each .mat file:
 % - contains variable 'NRF' (numeric vector)
@@ -45,6 +47,12 @@ if ~strcmp(resolvedNRFUtilsFile, expectedNRFUtilsFile)
          'resolved %s.'], expectedNRFUtilsFile, resolvedNRFUtilsFile);
 end
 
+resultsDir = fullfile(baseDir, 'data', 'results');
+tableOutPath = fullfile(resultsDir, ...
+    'supplementary_table_4_nrf_template_derivation_and_fitting_details.csv');
+figureOutPath = fullfile(resultsDir, ...
+    'supplementary_figure_1_nrf_template_visualisations.pdf');
+
 % =========================================================================
 % A. File and NRF identity settings
 % =========================================================================
@@ -54,11 +62,15 @@ pretermNRFName  = 'noxious_preterm_NRF_500Hz';
 nrfDisplayNames = {'Early', 'Noxious', 'Noxious preterm'};
 
 % =========================================================================
-% B. Projection and display-scaling settings
+% B. Projection, jitter and display-scaling settings
 % =========================================================================
 earlyStartMs    = 100;
 noxiousStartMs  = 400;
 pretermStartMs  = 0;
+
+earlyJitterMs   = 100;
+noxiousJitterMs = 100;
+pretermJitterMs = 100;
 
 earlyScale      = 1;
 noxiousScale    = 1;
@@ -105,13 +117,13 @@ noxiousPMAMax       = 42.7;
 pretermPMAMin       = 30.0;
 pretermPMAMax       = 33.6;
 
-earlyProcedure      = 'heel lance';
-noxiousProcedure    = 'heel lance';
-pretermProcedure    = 'heel lance';
+earlyProcedure      = 'Heel lance';
+noxiousProcedure    = 'Heel lance';
+pretermProcedure    = 'Heel lance';
 
-earlyPublication    = 'Cobo 2022';
-noxiousPublication  = 'Hartley 2017';
-pretermPublication  = 'van der Vaart 2022';
+earlyPublication    = '(Cobo et al., 2022)*';
+noxiousPublication  = '(Hartley et al., 2017)*';
+pretermPublication  = '(van der Vaart et al., 2022)*';
 
 %% ------------------------------------------------------------------------
 % INITIALISE DERIVED SUPPORT STRUCTURES
@@ -129,6 +141,7 @@ for i = 1:numel(templateReferences)
 end
 
 startMs   = [earlyStartMs, noxiousStartMs, pretermStartMs];
+jitterMs  = [earlyJitterMs, noxiousJitterMs, pretermJitterMs];
 scales    = [earlyScale, noxiousScale, pretermScale];
 colors    = {earlyColor, noxiousColor, pretermColor};
 
@@ -154,39 +167,38 @@ polarityLabels   = cell(1, nNRF);
 peakLatencyMs    = nan(1, nNRF);
 
 %% ------------------------------------------------------------------------
-% LOOP OVER THE THREE NRF FILES
+% LOAD AND VALIDATE THE THREE NRF FILES
 % -------------------------------------------------------------------------
 for i = 1:nNRF
     thisPath = canonicalNRFFiles{i};
-
     if ~isfile(thisPath)
         error('File not found: %s', thisPath);
     end
 
     S = load(thisPath);
-
     if ~isfield(S, 'NRF')
         error('Missing variable ''NRF'' in file: %s', thisPath);
     end
     if ~isfield(S, 'fs')
         error('Missing variable ''fs'' in file: %s', thisPath);
     end
-
     if ~(isnumeric(S.fs) && isscalar(S.fs) && isfinite(S.fs))
-        error('Variable ''fs'' must be a finite numeric scalar in file: %s', thisPath);
+        error(['Variable ''fs'' must be a finite numeric scalar in ' ...
+            'file: %s'], thisPath);
     end
     if S.fs ~= fsExpected
-        error('Unexpected fs in file %s. Expected %g, found %g.', thisPath, fsExpected, S.fs);
+        error('Unexpected fs in file %s. Expected %g, found %g.', ...
+            thisPath, fsExpected, S.fs);
     end
-
-    if ~(isnumeric(S.NRF) && isvector(S.NRF) && ~isempty(S.NRF) && all(isfinite(S.NRF)))
-        error('Variable ''NRF'' must be a non-empty finite numeric vector in file: %s', thisPath);
+    if ~(isnumeric(S.NRF) && isvector(S.NRF) && ~isempty(S.NRF) && ...
+            all(isfinite(S.NRF)))
+        error(['Variable ''NRF'' must be a non-empty finite numeric ' ...
+            'vector in file: %s'], thisPath);
     end
 
     thisNRF = S.NRF(:);
-    thisFs  = S.fs;
-
-    rawNRFs{i}  = thisNRF;
+    thisFs = S.fs;
+    rawNRFs{i} = thisNRF;
     loadedFs(i) = thisFs;
 
     nSamples = numel(thisNRF);
@@ -197,46 +209,41 @@ for i = 1:nNRF
         error('Invalid L2 norm for NRF in file: %s', thisPath);
     end
 
-    thisNormNRF   = thisNRF / thisL2;
+    thisNormNRF = thisNRF / thisL2;
     thisScaledNRF = thisNormNRF * scales(i);
-
-    normNRFs{i}   = thisNormNRF;
+    normNRFs{i} = thisNormNRF;
     scaledNRFs{i} = thisScaledNRF;
 
     withinTimeMs = (0:nSamples-1)' * (1000 / thisFs);
-    epochTimeMs  = startMs(i) + withinTimeMs;
-
+    epochTimeMs = startMs(i) + withinTimeMs;
     projectedVec = nan(nSupportSamples, 1);
 
     roundedEpochTime = round(epochTimeMs, 10);
-    roundedSupport   = round(supportTimeMs(:), 10);
-
+    roundedSupport = round(supportTimeMs(:), 10);
     [isMember, idxSupport] = ismember(roundedEpochTime, roundedSupport);
     projectedVec(idxSupport(isMember)) = thisScaledNRF(isMember);
-
     projectedNRFs{i} = projectedVec;
 
     % Peak detection relative to the first sample only.
-    % This affects peak latency and polarity.
     shiftedNRF = thisNRF - thisNRF(1);
-
-    % Optional smoothing for peak-location detection only
     peakDetectVec = shiftedNRF;
     if usePeakSmoothing
-        if ~(isscalar(peakSmoothingWidthSamps) && isnumeric(peakSmoothingWidthSamps) && ...
-                isfinite(peakSmoothingWidthSamps) && peakSmoothingWidthSamps >= 1 && ...
+        if ~(isscalar(peakSmoothingWidthSamps) && ...
+                isnumeric(peakSmoothingWidthSamps) && ...
+                isfinite(peakSmoothingWidthSamps) && ...
+                peakSmoothingWidthSamps >= 1 && ...
                 mod(peakSmoothingWidthSamps, 1) == 0)
             error('peakSmoothingWidthSamps must be a positive integer.');
         end
-        peakDetectVec = smoothdata(peakDetectVec, 1, peakSmoothingMethod, peakSmoothingWidthSamps);
+        peakDetectVec = smoothdata(peakDetectVec, 1, ...
+            peakSmoothingMethod, peakSmoothingWidthSamps);
     end
 
     [~, peakIdxDetect] = max(abs(peakDetectVec));
-    peakLatencyMs(i) = startMs(i) + (peakIdxDetect - 1) * (1000 / thisFs);
+    peakLatencyMs(i) = startMs(i) + ...
+        (peakIdxDetect - 1) * (1000 / thisFs);
 
-    % Polarity taken from the raw unsmoothed shifted NRF at the same peak
     dominantValueRaw = shiftedNRF(peakIdxDetect);
-
     if dominantValueRaw > 0
         polarityLabels{i} = 'Positive';
     elseif dominantValueRaw < 0
@@ -247,45 +254,53 @@ for i = 1:nNRF
 end
 
 %% ------------------------------------------------------------------------
-% CREATE ZERO-LINE VECTOR
+% BUILD THE MANUSCRIPT-SHAPED SUMMARY TABLE
 % -------------------------------------------------------------------------
-zeroLineVec = zeros(size(supportTimeMs));
+Detail = [ ...
+    "Publication"; ...
+    "Clinical Procedure"; ...
+    "PMA Range (weeks)"; ...
+    "Sample size (n)"; ...
+    "Deflection Polarity"; ...
+    "NRF Start Latency (ms)"; ...
+    "NRF Duration (ms)"; ...
+    "NRF Peak Latency (ms)"; ...
+    "Jitter allowance (ms)"];
 
-%% ------------------------------------------------------------------------
-% BUILD SUMMARY TABLE CONTENT
-% -------------------------------------------------------------------------
-rowNames = { ...
-    'ConstructionPublication', ...
-    'ConstructionProcedure', ...
-    'ConstructionPMARange', ...
-    'ConstructionSample', ...
-    'PeakLatency', ...
-    'DeflectionPolarity', ...
-    'Duration'};
-
-tableValues = strings(numel(rowNames), nNRF);
-
+tableValues = strings(numel(Detail), nNRF);
 for i = 1:nNRF
     tableValues(1, i) = string(metaPublication{i});
     tableValues(2, i) = string(metaProcedure{i});
-    tableValues(3, i) = sprintf('%.1f to %.1f weeks', metaPMAMin(i), metaPMAMax(i));
-    tableValues(4, i) = sprintf('n = %d', metaN(i));
-    tableValues(5, i) = sprintf('%g ms', peakLatencyMs(i));
-    tableValues(6, i) = string(polarityLabels{i});
-    tableValues(7, i) = sprintf('%g ms', durationsMs(i));
+    tableValues(3, i) = sprintf('%.1f – %.1f', ...
+        metaPMAMin(i), metaPMAMax(i));
+    tableValues(4, i) = sprintf('%d', metaN(i));
+    tableValues(5, i) = string(polarityLabels{i});
+    tableValues(6, i) = sprintf('%g', startMs(i));
+    tableValues(7, i) = sprintf('%g', durationsMs(i));
+    tableValues(8, i) = sprintf('%g', peakLatencyMs(i));
+    tableValues(9, i) = sprintf('±%g', jitterMs(i));
 end
 
-nrfSummaryTable = table( ...
-    tableValues(:,1), ...
-    tableValues(:,2), ...
-    tableValues(:,3), ...
-    'VariableNames', {'Early', 'Noxious', 'NoxiousPreterm'}, ...
-    'RowNames', rowNames);
+supplementaryTable4 = table( ...
+    Detail, ...
+    tableValues(:, 1), ...
+    tableValues(:, 2), ...
+    tableValues(:, 3), ...
+    'VariableNames', { ...
+        'Detail', ...
+        'Early NRF', ...
+        'Later Noxious NRF', ...
+        'Preterm Noxious NRF'});
 
 %% ------------------------------------------------------------------------
 % CREATE FIGURE
 % -------------------------------------------------------------------------
-figure('Name', 'NRF details', 'Color', 'w');
+zeroLineVec = zeros(size(supportTimeMs));
+nrfFigure = figure( ...
+    'Name', 'NRF details', ...
+    'Color', 'w', ...
+    'Units', 'centimeters', ...
+    'Position', [2 2 15.92 10.13]);
 
 for i = 1:nNRF
     subplot(3, 1, i);
@@ -312,13 +327,28 @@ for i = 1:nNRF
     if invertYAxis
         set(gca, 'YDir', 'reverse');
     end
-
     hold off;
 end
 
-%% ------------------------------------------------------------------------
-% DISPLAY TABLE
-% -------------------------------------------------------------------------
 disp(' ');
-disp('NRF summary table:');
-disp(nrfSummaryTable);
+disp(['Supplementary Table 4. NRF template-derivation and ' ...
+    'fitting details.']);
+disp(supplementaryTable4);
+
+%% ------------------------------------------------------------------------
+% CREATE RESULTS FOLDER AND SAVE VALIDATED OUTPUTS
+% -------------------------------------------------------------------------
+if ~isfolder(resultsDir)
+    [ok, message] = mkdir(resultsDir);
+    if ~ok
+        error('Failed to create results directory %s: %s', ...
+            resultsDir, message);
+    end
+end
+
+writetable(supplementaryTable4, tableOutPath);
+drawnow;
+exportgraphics(nrfFigure, figureOutPath, 'ContentType', 'vector');
+
+fprintf('Saved Supplementary Table 4: %s\n', tableOutPath);
+fprintf('Saved Supplementary Figure 1: %s\n', figureOutPath);
