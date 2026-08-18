@@ -1,8 +1,8 @@
 %% step_8_jasp_5_data_prep_combine_all.m
 % Purpose
 %   - Read:
-%       data/jasp/jasp_data_eeg.csv
-%       data/jasp/jasp_data_other.csv
+%       data/results/jasp_data_eeg.csv
+%       data/results/jasp_data_other.csv
 %   - Merge by subjectID using jasp_data_eeg.csv as the master subject list.
 %   - Require (hard errors):
 %       • subjectID exists in both inputs.
@@ -16,7 +16,7 @@
 %       • then all OTHER columns in the exact order from jasp_data_other.csv (excluding subjectID)
 %   - Sort rows by subjectID before writing.
 %   - Write the provisional combined table:
-%       data/jasp/jasp_data_all.csv
+%       data/results/jasp_data_all.csv
 %   - Step 8.6 finalises this same path with the three analysis-membership
 %     columns. Do not import it into JASP until Step 8.6 succeeds.
 
@@ -26,11 +26,11 @@ clear; clc;
 %% 0) User config: paths
 baseDir = '/Users/lukebaxter/Developer/simple-eeg/simple-oxford';
 
-jaspDir = fullfile(baseDir, 'data', 'jasp');
+resultsDir = fullfile(baseDir, 'data', 'results');
 
-eegCsv   = fullfile(jaspDir, 'jasp_data_eeg.csv');
-otherCsv = fullfile(jaspDir, 'jasp_data_other.csv');
-outCsv   = fullfile(jaspDir, 'jasp_data_all.csv');
+eegCsv   = fullfile(resultsDir, 'jasp_data_eeg.csv');
+otherCsv = fullfile(resultsDir, 'jasp_data_other.csv');
+outCsv   = fullfile(resultsDir, 'jasp_data_all.csv');
 
 %% 1) Validate inputs exist
 assert(isfile(eegCsv),   'Input file not found: %s', eegCsv);

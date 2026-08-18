@@ -12,8 +12,8 @@
 %       • blank/invalid subjectID,
 %       • duplicate subjectID,
 %       • unexpected non-empty values in the trial-arm or sleep-state source columns.
-%   - Create data/jasp/ if missing, and write:
-%       data/jasp/jasp_data_other.csv
+%   - Create data/results/ if missing, and write:
+%       data/results/jasp_data_other.csv
 %   - Output rows sorted by subjectID; columns in exact order specified below.
 %
 % Output schema (columns in this exact order)
@@ -50,7 +50,7 @@ baseDir = '/Users/lukebaxter/Developer/simple-eeg/simple-oxford';
 
 inXlsx = fullfile(baseDir, 'data_lists', 'medscinet_export_petal.xlsx');
 
-outDir = fullfile(baseDir, 'data', 'jasp');
+outDir = fullfile(baseDir, 'data', 'results');
 outCsv = fullfile(outDir, 'jasp_data_other.csv');
 
 COL_PROJECT     = 'RECD - Research project';

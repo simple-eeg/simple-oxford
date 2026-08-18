@@ -1,8 +1,8 @@
 %% step_8_jasp_3_data_prep_eeg_combine.m
 % Purpose
 %   - Read:
-%       data/jasp/jasp_data_eeg_qc.csv
-%       data/jasp/jasp_data_eeg_nrf.csv
+%       data/results/jasp_data_eeg_qc.csv
+%       data/results/jasp_data_eeg_nrf.csv
 %   - Merge 1:1 by subjectID with strict validation:
 %       • subjectID exists in both files
 %       • subjectID is non-blank (after trimming) in both files
@@ -14,7 +14,7 @@
 %       • then all NRF columns in the exact order from jasp_data_eeg_nrf.csv (excluding subjectID)
 %   - Sort rows by subjectID before writing.
 %   - Write:
-%       data/jasp/jasp_data_eeg.csv
+%       data/results/jasp_data_eeg.csv
 
 log_command_window('start');
 clear; clc;
@@ -22,11 +22,11 @@ clear; clc;
 %% 0) User config: paths
 baseDir = '/Users/lukebaxter/Developer/simple-eeg/simple-oxford';
 
-jaspDir = fullfile(baseDir, 'data', 'jasp');
+resultsDir = fullfile(baseDir, 'data', 'results');
 
-qcCsv  = fullfile(jaspDir, 'jasp_data_eeg_qc.csv');
-nrfCsv = fullfile(jaspDir, 'jasp_data_eeg_nrf.csv');
-outCsv = fullfile(jaspDir, 'jasp_data_eeg.csv');
+qcCsv  = fullfile(resultsDir, 'jasp_data_eeg_qc.csv');
+nrfCsv = fullfile(resultsDir, 'jasp_data_eeg_nrf.csv');
+outCsv = fullfile(resultsDir, 'jasp_data_eeg.csv');
 
 %% 1) Validate inputs exist
 assert(isfile(qcCsv),  'Input file not found: %s', qcCsv);

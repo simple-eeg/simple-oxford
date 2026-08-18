@@ -1,6 +1,6 @@
 %% step_8_jasp_6_add_bvt_cols.m
 % Purpose
-%   - Read:  data/jasp/jasp_data_all.csv
+%   - Read:  data/results/jasp_data_all.csv
 %   - Read:  data_lists/medscinet_export_petal_pub.xlsx
 %   - Derive a pub subjectID list from the XLSX:
 %       subjectID = (RECD - Research project, with "OX" -> "Ox") + (RECD - Participant number)
@@ -9,7 +9,7 @@
 %       HL_ER_nNRF_mag_Screening
 %       HL_ER_nNRF_mag_pub
 %       HL_ER_nNRF_mag_pub_Screening
-%   - Overwrite data/jasp/jasp_data_all.csv in place
+%   - Overwrite data/results/jasp_data_all.csv in place
 %   - This finalises the Step 8 JASP table. Rerun Step 8.6 after any rerun of
 %     Step 8.5 before importing jasp_data_all.csv into JASP.
 %
@@ -25,8 +25,8 @@ clear; clc;
 %% 0) User config: paths
 baseDir = '/Users/lukebaxter/Developer/simple-eeg/simple-oxford';
 
-jaspDir = fullfile(baseDir, 'data', 'jasp');
-csvPath = fullfile(jaspDir, 'jasp_data_all.csv');
+resultsDir = fullfile(baseDir, 'data', 'results');
+csvPath = fullfile(resultsDir, 'jasp_data_all.csv');
 
 xlsPath = fullfile(baseDir, 'data_lists', 'medscinet_export_petal_pub.xlsx');
 

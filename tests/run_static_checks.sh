@@ -951,8 +951,13 @@ for name in expected:
     text = (root / "scripts" / name).read_text(encoding="utf-8")
     if "writetable(" not in text:
         raise AssertionError(f"Step 8 script does not produce a CSV: {name}")
-    if "'data', 'jasp'" not in text and "jaspDir" not in text:
-        raise AssertionError(f"Step 8 script is not bound to data/jasp: {name}")
+    if "'data', 'results'" not in text and "resultsDir" not in text:
+        raise AssertionError(f"Step 8 script is not bound to data/results: {name}")
+    if "'data', 'jasp'" in text or "data/jasp" in text:
+        raise AssertionError(f"Step 8 script retains the retired data/jasp path: {name}")
+readme = (root / "README.md").read_text(encoding="utf-8")
+if "data/results/" not in readme or "data/jasp" in readme:
+    raise AssertionError("README does not expose only the data/results Step 8 path")
 pain_only_contract = {
     "step_8_jasp_1_data_prep_eeg_qc.m": [
         'expected_eventtype = ["lance_prestim","lance"];',
@@ -1009,6 +1014,9 @@ check_step9_general() {
         'Supplementary Table 1. Petal dataset characteristics.'; do
         grep -Fq "$token" "$sample_file" || { printf 'missing Step 9.2 anchor: %s\n' "$token"; return 1; }
     done
+    grep -Fq "fullfile(baseDir, 'data', 'results', 'jasp_data_all.csv')" "$sample_file" || return 1
+    ! grep -Fq "data/jasp" "$sample_file" || return 1
+    ! grep -Fq "'data', 'jasp'" "$sample_file" || return 1
     [ "$(grep -Fc '%% step_9_gen_1_nrf_details.m' "$nrf_file")" -eq 1 ] || return 1
     [ ! -e "$candidate/scripts/step_8_jasp_9_nrf_details.m" ] || return 1
     [ ! -e "$candidate/scripts/step_8_jasp_7_sample_details.m" ] || return 1

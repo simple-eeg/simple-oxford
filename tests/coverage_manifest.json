@@ -1924,7 +1924,7 @@
       "id": "BASE-JASP-001",
       "requirement_key": "step8_pain_only_exports",
       "surface": "scripts.step_8_jasp_exports",
-      "requirement": "Step 8 contains exactly six JASP CSV-preparation scripts; its QC and NRF exports expose only the pain-route baseline and heel-lance columns while preserving sorted subjects, values and exclusion-derived missingness, and the complete chain produces the exact repeatable final table through the five intended CSV artifacts.",
+      "requirement": "Step 8 contains exactly six JASP CSV-preparation scripts; its QC and NRF exports expose only the pain-route baseline and heel-lance columns while preserving sorted subjects, values and exclusion-derived missingness, and the complete chain produces the exact repeatable final table through the five intended CSV artifacts under data/results.",
       "test_refs": [
         {
           "test_id": "matlab.step8_exports"

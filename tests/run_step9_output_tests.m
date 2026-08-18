@@ -31,7 +31,9 @@ assert(isequal(before, after), ...
     'Step 9.2 created or removed a file in its display-only route.');
 assert(~isfolder(fullfile(root, 'data', 'logs')), ...
     'Step 9.2 created a log directory in its display-only route.');
-assert(~isfile(fullfile(root, 'data', 'jasp', ...
+assert(~isfolder(fullfile(root, 'data', 'jasp')), ...
+    'Step 9.2 created the retired data/jasp directory.');
+assert(~isfile(fullfile(root, 'data', 'results', ...
     'jasp_sample_details.csv')), ...
     'Step 9.2 created the retired JASP sample-details CSV.');
 
@@ -136,6 +138,8 @@ assert(isequal(before, after), ...
     'A rejected Step 9.2 fixture changed the file inventory.');
 assert(~isfolder(fullfile(root, 'data', 'logs')), ...
     'A rejected Step 9.2 fixture created a log directory.');
+assert(~isfolder(fullfile(root, 'data', 'jasp')), ...
+    'A rejected Step 9.2 fixture created the retired data/jasp directory.');
 passed = 1;
 end
 
@@ -146,10 +150,10 @@ mkdir(root);
 cleanup = onCleanup(@() cleanup_fixture(root, originalFolder));
 
 scriptsRoot = fullfile(root, 'scripts');
-jaspRoot = fullfile(root, 'data', 'jasp');
+resultsRoot = fullfile(root, 'data', 'results');
 listsRoot = fullfile(root, 'data_lists');
 mkdir(scriptsRoot);
-mkdir(jaspRoot);
+mkdir(resultsRoot);
 mkdir(listsRoot);
 
 copy_script_with_fixture_root( ...
@@ -160,7 +164,7 @@ subjectID = ["Ox60004"; "Ox60001"; "Ox60003"; "Ox60002"];
 trial_arm = ["Control"; "Intervention"; "Intervention"; "Control"];
 HL_sleep_state = ["Awake"; "Asleep"; "Awake"; "Awake"];
 jaspTable = table(subjectID, trial_arm, HL_sleep_state);
-writetable(jaspTable, fullfile(jaspRoot, 'jasp_data_all.csv'));
+writetable(jaspTable, fullfile(resultsRoot, 'jasp_data_all.csv'));
 
 project = repmat("OX6", 5, 1);
 participant = ["0004"; "0001"; "0003"; "0002"; "9999"];

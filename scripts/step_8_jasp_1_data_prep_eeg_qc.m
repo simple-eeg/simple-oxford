@@ -6,8 +6,8 @@
 %   - Validate strict dataset assumptions on the INCLUDED subset (hard-stop on violations).
 %   - Reshape to a single-row-per-subject, JASP-ready table with a fixed schema:
 %       one QC value per subject per eventtype, for each requested QC metric.
-%   - Create data/jasp/ if missing, and write:
-%       data/jasp/jasp_data_eeg_qc.csv
+%   - Create data/results/ if missing, and write:
+%       data/results/jasp_data_eeg_qc.csv
 %
 % Input expectations (hard errors if violated, on INCLUDED subset only)
 %   - subjectID must be present and non-blank (after trimming).
@@ -32,7 +32,7 @@
 %   - Columns in the exact order specified below.
 %   - Rows sorted by subjectID.
 %   - Output path:
-%       data/jasp/jasp_data_eeg_qc.csv
+%       data/results/jasp_data_eeg_qc.csv
 %   - Subjects are retained even if all their rows are excluded; in that case, all QC columns are NaN.
 
 log_command_window('start');
@@ -42,7 +42,7 @@ clear; clc;
 baseDir = '/Users/lukebaxter/Developer/simple-eeg/simple-oxford';
 
 inCsv  = fullfile(baseDir, 'data', 'summary', 'screening', 'pooled_screened_eeg_qc_features.csv');
-outDir = fullfile(baseDir, 'data', 'jasp');
+outDir = fullfile(baseDir, 'data', 'results');
 outCsv = fullfile(outDir, 'jasp_data_eeg_qc.csv');
 
 expected_channel   = "CZ";

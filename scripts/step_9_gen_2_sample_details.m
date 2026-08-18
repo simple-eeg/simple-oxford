@@ -10,7 +10,7 @@
 %   - supplementaryTable1: the formatted manuscript table
 %
 % Inputs:
-%   1) data/jasp/jasp_data_all.csv
+%   1) data/results/jasp_data_all.csv
 %      Required columns:
 %         - subjectID
 %         - trial_arm
@@ -39,12 +39,12 @@ clear; clc;
 %% Paths
 baseDir = '/Users/lukebaxter/Developer/simple-eeg/simple-oxford';
 
-jaspInPath = fullfile(baseDir, 'data', 'jasp', 'jasp_data_all.csv');
+resultsInPath = fullfile(baseDir, 'data', 'results', 'jasp_data_all.csv');
 medInPath  = fullfile(baseDir, 'data_lists', 'medscinet_export_petal.xlsx');
 
 %% Check input files exist
-if ~isfile(jaspInPath)
-    error('Input file not found: %s', jaspInPath);
+if ~isfile(resultsInPath)
+    error('Input file not found: %s', resultsInPath);
 end
 
 if ~isfile(medInPath)
@@ -52,7 +52,7 @@ if ~isfile(medInPath)
 end
 
 %% Read jasp_data_all.csv
-jaspOpts = detectImportOptions(jaspInPath, 'PreserveVariableNames', true);
+jaspOpts = detectImportOptions(resultsInPath, 'PreserveVariableNames', true);
 jaspVarsToReadAsString = {'subjectID', 'trial_arm', 'HL_sleep_state'};
 jaspVarsPresent = intersect(jaspVarsToReadAsString, ...
     jaspOpts.VariableNames, 'stable');
@@ -61,7 +61,7 @@ if ~isempty(jaspVarsPresent)
     jaspOpts = setvartype(jaspOpts, jaspVarsPresent, 'string');
 end
 
-jaspTbl = readtable(jaspInPath, jaspOpts);
+jaspTbl = readtable(resultsInPath, jaspOpts);
 
 %% Validate required JASP columns
 requiredJaspVars = {'subjectID', 'trial_arm', 'HL_sleep_state'};

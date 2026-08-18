@@ -177,7 +177,7 @@ Step 7 provides display and machine-readable checks of the screened results.
 
 The six Step 8 scripts prepare, combine and annotate Oxford-specific CSV
 tables for later analysis in JASP. They use the screened EEG results and study
-metadata and write under `data/jasp/`.
+metadata and write under `data/results/`.
 
 | Script | Responsibility | Output | Expected current Petal result |
 |---|---|---|---|

@@ -5,8 +5,8 @@
 %   - Apply screening decisions at item-level (Exclude).
 %   - Validate strict dataset assumptions on the INCLUDED subset (hard-stop on violations).
 %   - Reshape to a single-row-per-subject, JASP-ready table with a fixed schema.
-%   - Create data/jasp/ if missing, and write:
-%       data/jasp/jasp_data_eeg_nrf.csv
+%   - Create data/results/ if missing, and write:
+%       data/results/jasp_data_eeg_nrf.csv
 %
 % Input expectations (hard errors if violated, on INCLUDED subset only)
 %   - subjectID must be present and non-blank (after trimming).
@@ -36,7 +36,7 @@
 %   - Columns in the exact order specified below.
 %   - Rows sorted by subjectID.
 %   - Output path:
-%       data/jasp/jasp_data_eeg_nrf.csv
+%       data/results/jasp_data_eeg_nrf.csv
 %   - Subjects are retained even if all their rows are excluded; in that case, all magnitude columns are NaN.
 
 log_command_window('start');
@@ -46,7 +46,7 @@ clear; clc;
 baseDir = '/Users/lukebaxter/Developer/simple-eeg/simple-oxford';
 
 inCsv  = fullfile(baseDir, 'data', 'summary', 'screening', 'pooled_screened_eeg_nrf_features.csv');
-outDir = fullfile(baseDir, 'data', 'jasp');
+outDir = fullfile(baseDir, 'data', 'results');
 outCsv = fullfile(outDir, 'jasp_data_eeg_nrf.csv');
 
 expected_channel   = "CZ";
