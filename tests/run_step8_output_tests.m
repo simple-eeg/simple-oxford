@@ -30,16 +30,16 @@ end
 function passed = run_sample_details_positive(repoRoot)
 [root, cleanup] = make_sample_fixture(repoRoot, "positive"); %#ok<ASGLU>
 run_fixture_script(fullfile(root, 'scripts', ...
-    'step_8_gen_1_sample_details.m'));
+    'step_8_gen_2_sample_details.m'));
 
 logPath = assert_exact_log_inventory(root, ...
-    'step_8_gen_1_sample_details.m');
+    'step_8_gen_2_sample_details.m');
 assert_log_contains(logPath, "Saved Supplementary Table 1:");
 resultsRoot = fullfile(root, 'data', 'results');
 outputPath = fullfile(resultsRoot, ...
     'supplementary_table_1_petal_dataset_characteristics.csv');
 assert(isfile(outputPath), ...
-    'Step 8.1 did not create the Supplementary Table 1 CSV.');
+    'Step 8.2 did not create the Supplementary Table 1 CSV.');
 assert_excel_utf8_csv(outputPath);
 assert(isequal(sorted_file_names(resultsRoot, '*'), ...
     {'supplementary_table_1_petal_dataset_characteristics.csv'}));
@@ -120,14 +120,14 @@ assert(isequal(savedTable, supplementaryTable1), ...
 write_text(outputPath, 'obsolete fixture output');
 write_text(logPath, 'obsolete fixture log');
 run_fixture_script(fullfile(root, 'scripts', ...
-    'step_8_gen_1_sample_details.m'));
+    'step_8_gen_2_sample_details.m'));
 replacementTable = read_text_table(outputPath);
 assert_excel_utf8_csv(outputPath);
 assert(isequal(replacementTable, evalin('base', 'supplementaryTable1')), ...
-    'Step 8.1 did not replace its existing CSV on a valid rerun.');
+    'Step 8.2 did not replace its existing CSV on a valid rerun.');
 assert_log_contains(logPath, "Saved Supplementary Table 1:");
 assert(~contains(string(fileread(logPath)), "obsolete fixture log"), ...
-    'Step 8.1 appended to rather than replaced its existing log.');
+    'Step 8.2 appended to rather than replaced its existing log.');
 passed = 1;
 end
 
@@ -136,33 +136,33 @@ function passed = run_nrf_details_missing_template(repoRoot)
     repoRoot, "missing_template"); %#ok<ASGLU>
 before = snapshot_regular_files(root);
 scriptPath = fullfile(root, 'scripts', ...
-    'step_8_gen_2_nrf_details.m');
+    'step_8_gen_3_nrf_details.m');
 try
     run_fixture_script(scriptPath);
     error('TEST:ExpectedFailure', ...
-        'Step 8.2 unexpectedly accepted a missing template.');
+        'Step 8.3 unexpectedly accepted a missing template.');
 catch ME
     if ME.identifier == "TEST:ExpectedFailure"
         rethrow(ME);
     end
     assert(contains(string(ME.message), "not found"), ...
-        'Step 8.2 used the wrong missing-template error: %s', ME.message);
+        'Step 8.3 used the wrong missing-template error: %s', ME.message);
 end
 
 assert_failure_log_only(root, before, ...
-    'step_8_gen_2_nrf_details.m');
+    'step_8_gen_3_nrf_details.m');
 assert(~isfolder(fullfile(root, 'data', 'results')), ...
-    'A rejected Step 8.2 fixture created the results directory.');
+    'A rejected Step 8.3 fixture created the results directory.');
 passed = 1;
 end
 
 function passed = run_nrf_details_positive(repoRoot)
 [root, cleanup] = make_nrf_fixture(repoRoot, "positive"); %#ok<ASGLU>
 run_fixture_script(fullfile(root, 'scripts', ...
-    'step_8_gen_2_nrf_details.m'));
+    'step_8_gen_3_nrf_details.m'));
 
 logPath = assert_exact_log_inventory(root, ...
-    'step_8_gen_2_nrf_details.m');
+    'step_8_gen_3_nrf_details.m');
 assert_log_contains(logPath, [ ...
     "Saved Supplementary Table 4:", ...
     "Saved Supplementary Figure 1:"]);
@@ -172,10 +172,10 @@ tablePath = fullfile(resultsRoot, ...
 figurePath = fullfile(resultsRoot, ...
     'supplementary_figure_1_nrf_template_visualisations.pdf');
 assert(isfile(tablePath), ...
-    'Step 8.2 did not create the Supplementary Table 4 CSV.');
+    'Step 8.3 did not create the Supplementary Table 4 CSV.');
 assert_excel_utf8_csv(tablePath);
 assert(isfile(figurePath), ...
-    'Step 8.2 did not create the Supplementary Figure 1 PDF.');
+    'Step 8.3 did not create the Supplementary Figure 1 PDF.');
 assert(isequal(sorted_file_names(resultsRoot, '*'), { ...
     'supplementary_figure_1_nrf_template_visualisations.pdf', ...
     ['supplementary_table_4_nrf_template_derivation_and_' ...
@@ -254,38 +254,38 @@ assert(~contains(pdfText, '/Subtype /Image'), ...
 
 nrfFigure = evalin('base', 'nrfFigure');
 assert(isgraphics(nrfFigure, 'figure'), ...
-    'Step 8.2 did not retain its figure in the workspace.');
+    'Step 8.3 did not retain its figure in the workspace.');
 assert(strcmp(get(nrfFigure, 'Units'), 'centimeters'));
 figurePosition = get(nrfFigure, 'Position');
 assert(max(abs(figurePosition(3:4) - [15.92 10.13])) < 0.03, ...
-    ['Step 8.2 did not retain the manuscript figure dimensions. ' ...
+    ['Step 8.3 did not retain the manuscript figure dimensions. ' ...
      'Observed %.6g x %.6g cm.'], figurePosition(3), figurePosition(4));
 axesHandles = findall(nrfFigure, 'Type', 'axes');
 assert(numel(axesHandles) == 3, ...
-    'Step 8.2 did not retain the expected three-panel figure.');
+    'Step 8.3 did not retain the expected three-panel figure.');
 assert(all(strcmp(get(axesHandles, 'YDir'), 'reverse')), ...
-    'Step 8.2 did not retain the EEG positive-down display convention.');
+    'Step 8.3 did not retain the EEG positive-down display convention.');
 
 close(nrfFigure);
 write_text(tablePath, 'obsolete fixture table');
 write_text(figurePath, 'obsolete fixture figure');
 write_text(logPath, 'obsolete fixture log');
 run_fixture_script(fullfile(root, 'scripts', ...
-    'step_8_gen_2_nrf_details.m'));
+    'step_8_gen_3_nrf_details.m'));
 replacementTable = read_text_table(tablePath);
 assert_excel_utf8_csv(tablePath);
 assert(isequal(string(replacementTable{:,:}), ...
     string(evalin('base', 'supplementaryTable4{:,:}'))), ...
-    'Step 8.2 did not replace its existing CSV on a valid rerun.');
+    'Step 8.3 did not replace its existing CSV on a valid rerun.');
 replacementPdf = read_binary(figurePath);
 assert(numel(replacementPdf) > 1000 && ...
     isequal(char(replacementPdf(1:5))', '%PDF-'), ...
-    'Step 8.2 did not replace its existing PDF on a valid rerun.');
+    'Step 8.3 did not replace its existing PDF on a valid rerun.');
 assert_log_contains(logPath, [ ...
     "Saved Supplementary Table 4:", ...
     "Saved Supplementary Figure 1:"]);
 assert(~contains(string(fileread(logPath)), "obsolete fixture log"), ...
-    'Step 8.2 appended to rather than replaced its existing log.');
+    'Step 8.3 appended to rather than replaced its existing log.');
 passed = 1;
 end
 
@@ -293,31 +293,31 @@ function passed = run_sample_details_failure(repoRoot, mode)
 [root, cleanup] = make_sample_fixture(repoRoot, mode); %#ok<ASGLU>
 before = snapshot_regular_files(root);
 scriptPath = fullfile(root, 'scripts', ...
-    'step_8_gen_1_sample_details.m');
+    'step_8_gen_2_sample_details.m');
 
 try
     run_fixture_script(scriptPath);
     error('TEST:ExpectedFailure', ...
-        'Step 8.1 unexpectedly accepted the %s fixture.', mode);
+        'Step 8.2 unexpectedly accepted the %s fixture.', mode);
 catch ME
     if ME.identifier == "TEST:ExpectedFailure"
         rethrow(ME);
     end
     if mode == "incomplete"
         assert(ME.identifier == "SimpleOxford:SampleDetails:IncompleteData", ...
-            'Step 8.1 used the wrong incomplete-data error: %s', ...
+            'Step 8.2 used the wrong incomplete-data error: %s', ...
             ME.identifier);
     else
         assert(ME.identifier == ...
             "SimpleOxford:SampleDetails:UnexpectedCategory", ...
-            'Step 8.1 used the wrong category error: %s', ME.identifier);
+            'Step 8.2 used the wrong category error: %s', ME.identifier);
     end
 end
 
 assert_failure_log_only(root, before, ...
-    'step_8_gen_1_sample_details.m');
+    'step_8_gen_2_sample_details.m');
 assert(~isfolder(fullfile(root, 'data', 'results')), ...
-    'A rejected Step 8.1 fixture created the results directory.');
+    'A rejected Step 8.2 fixture created the results directory.');
 passed = 1;
 end
 
@@ -335,8 +335,8 @@ mkdir(listsRoot);
 
 bind_fixture_logger(repoRoot, scriptsRoot);
 copy_script_with_fixture_root( ...
-    fullfile(repoRoot, 'scripts', 'step_8_gen_1_sample_details.m'), ...
-    fullfile(scriptsRoot, 'step_8_gen_1_sample_details.m'), root);
+    fullfile(repoRoot, 'scripts', 'step_8_gen_2_sample_details.m'), ...
+    fullfile(scriptsRoot, 'step_8_gen_2_sample_details.m'), root);
 
 subjectID = ["Ox60004"; "Ox60001"; "Ox60003"; "Ox60002"];
 datasetTable = table(subjectID);
@@ -403,8 +403,8 @@ mkdir(templatesRoot);
 
 bind_fixture_logger(repoRoot, scriptsRoot);
 copy_script_with_fixture_root( ...
-    fullfile(repoRoot, 'scripts', 'step_8_gen_2_nrf_details.m'), ...
-    fullfile(scriptsRoot, 'step_8_gen_2_nrf_details.m'), root);
+    fullfile(repoRoot, 'scripts', 'step_8_gen_3_nrf_details.m'), ...
+    fullfile(scriptsRoot, 'step_8_gen_3_nrf_details.m'), root);
 copyfile(fullfile(repoRoot, 'functions', 'NRFUtils.m'), ...
     fullfile(functionsRoot, 'NRFUtils.m'));
 

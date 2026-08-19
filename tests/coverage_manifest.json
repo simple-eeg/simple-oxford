@@ -8,7 +8,7 @@
     "relative_tolerance": 0
   },
   "expected_runtime_totals": {
-    "runner_sha256": "c37ba16bf9904c4f00a77c9f6850f2cf482c08b0afbed8f027235b8572019ee8",
+    "runner_sha256": "0105c2824e1e4610a25b5b4626b39366a7c7fb656512193c4caf97785eed0251",
     "preproc": 30,
     "response": 17,
     "jitter": 11,
@@ -16,6 +16,7 @@
     "clean_contract": 18,
     "registry": 23,
     "processing_state": 9,
+    "step8_check_plot": 8,
     "step8_output": 5,
     "step9_export": 4,
     "extended": 120
@@ -484,6 +485,24 @@
         "zero_fit_absent_nrf_no_save",
         "positive_fit_saves_without_prior_nrf",
         "nonstruct_prior_nrf_cleared"
+      ]
+    },
+    {
+      "id": "matlab.step8_check_plot",
+      "kind": "matlab-synthetic",
+      "source": "tests/run_step8_check_plot_tests.m",
+      "runner": "tests/run_all_tests.m",
+      "runner_anchor": "run_step8_check_plot_tests",
+      "expected_pass_count": 8,
+      "cases": [
+        "collection_positive",
+        "collection_failures",
+        "panel_parity",
+        "separation_positive",
+        "separation_failures",
+        "script_positive",
+        "script_failures",
+        "transaction_rollback"
       ]
     },
     {
@@ -1926,7 +1945,7 @@
       "id": "BASE-JASP-001",
       "requirement_key": "step9_pain_only_exports",
       "surface": "scripts.step_9_jasp_exports",
-      "requirement": "Step 9 contains exactly six JASP CSV-preparation scripts; its QC and NRF exports expose only the pain-route baseline and heel-lance columns while preserving sorted subjects, values and exclusion-derived missingness, and the complete chain produces the exact repeatable final table through its five owned CSV artifacts under data/results without changing the three Step 8 manuscript artifacts stored alongside them. Every script starts one exact-name replacement log as its first executable before clear and stops it once as its final script-body executable after successful completion.",
+      "requirement": "Step 9 contains exactly six JASP CSV-preparation scripts; its QC and NRF exports expose only the pain-route baseline and heel-lance columns while preserving sorted subjects, values and exclusion-derived missingness, and the complete chain produces the exact repeatable final table through its five owned CSV artifacts under data/results without changing the four Step 8 manuscript artifacts stored alongside them. Every script starts one exact-name replacement log as its first executable before clear and stops it once as its final script-body executable after successful completion.",
       "test_refs": [
         {
           "test_id": "matlab.step9_exports"
@@ -1941,8 +1960,11 @@
       "id": "BASE-GEN-001",
       "requirement_key": "step8_manuscript_outputs",
       "surface": "scripts.step_8_manuscript_outputs",
-      "requirement": "Step 8 contains exactly two manuscript-output scripts: the Petal participant-characteristics utility followed by the NRF visualisation and summary utility; together they save Supplementary Tables 1 and 4 as UTF-8-BOM CSV files and Supplementary Figure 1 as a vector PDF under data/results, retain their MATLAB outputs for inspection and create exact-name replacement logs. Table 1 uses en-dash subgroup labels rather than leading ASCII hyphen-minus, and Table 4 uses plain author-year Publication values without parentheses or asterisks. Every script starts its logger once as the first executable before clear and stops it once as the final script-body executable after successful completion; rejected inputs may create or replace only that log and never a scientific output.",
+      "requirement": "Step 8 contains exactly three ordered manuscript-output scripts. Step 8.1 creates the fixed recording-level four-by-two Figure 3 PDF from validated screened epochs and saved Step 7.6/7.7 schema-v2 results without invoking a Step 7 script or recalculating its bootstrap, and commits its PDF transactionally while retaining the figure, configuration, panel data and handles. Step 8.2 creates the Petal participant-characteristics table. Step 8.3 creates the NRF summary table and template figure. Together they save exactly four manuscript artefacts under data/results and create exact-name replacement logs. The CSV outputs retain their accepted UTF-8-BOM and publication-label contracts, and rejected routes preserve all unrelated results.",
       "test_refs": [
+        {
+          "test_id": "matlab.step8_check_plot"
+        },
         {
           "test_id": "matlab.step8_outputs"
         },
@@ -1953,9 +1975,24 @@
       "category": "repository"
     },
     {
+      "id": "BASE-CLS-020",
+      "requirement_key": "closure_step81",
+      "surface": "scripts.step_8_gen_1_check_plots",
+      "requirement": "The fixed Step 8.1 guardrail figure uses the exact five canonically bound helper interfaces, matches active Steps 7.3--7.5 for both selected events, consumes fully validated saved schema-v2 separation results without bootstrap or RNG change, exposes the accepted tagged eight-panel and six-label inspection surface, and restores or removes its owned PDF transaction on every rejected route.",
+      "test_refs": [
+        {
+          "test_id": "matlab.step8_check_plot"
+        },
+        {
+          "test_id": "static.callers.step8_general"
+        }
+      ],
+      "category": "repository"
+    },
+    {
       "id": "BASE-CLS-012",
-      "requirement_key": "closure_step82",
-      "surface": "scripts.step_8_gen_2_nrf_details",
+      "requirement_key": "closure_step83",
+      "surface": "scripts.step_8_gen_3_nrf_details",
       "requirement": "All three logical/explicit template references route through the repository resolver.",
       "test_refs": [
         {

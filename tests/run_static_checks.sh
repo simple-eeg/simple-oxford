@@ -269,14 +269,14 @@ require(manifest.get("comparison_policy") == {
 
 catalog = manifest.get("test_catalog")
 coverage = manifest.get("coverage")
-require(isinstance(catalog, list) and len(catalog) == 43, "test catalog count differs")
-require(isinstance(coverage, list) and len(coverage) == 73, "coverage row count differs")
+require(isinstance(catalog, list) and len(catalog) == 44, "test catalog count differs")
+require(isinstance(coverage, list) and len(coverage) == 74, "coverage row count differs")
 catalog_ids = [item.get("id") for item in catalog]
 require(all(isinstance(x, str) and x for x in catalog_ids), "blank catalog id")
 require(len(catalog_ids) == len(set(catalog_ids)), "duplicate catalog id")
 catalog_by_id = {item["id"]: item for item in catalog}
 
-expected_keys = set(["baseline_routes","cleanline_routes","closure_clone","closure_config","closure_current_surface","closure_function_inventory","closure_generated","closure_git","closure_ignore_hyp","closure_ignore_real","closure_logs","closure_manifest","closure_paths","closure_readme","closure_root","closure_step54","closure_step72","closure_step73","closure_step82","closure_templates","closure_viewer_qc_example","config_profiles_cache","dataset_registry_paths","delete_contracts","dependency_missing","dependency_present","effective_preprocessing_provenance","epoch_failures","epoch_modes","filter_modes","jitter_edges","jitter_shapes_shifts","jitter_ties_padding","line_frequency_edges","line_off_notch","nrf_clear_persistence","nrf_template_preflight","numeric_results","offset_consistency","offset_mapping_fields","offset_no_event","offset_no_source","offset_oob","offset_report_keys","offset_validation","prep_defaults","prep_empty_array","prep_empty_data","prep_inputs","prep_multi_array","preproc_order_history","preprocessing_caller_contract","qc_coord_schema","qc_direct_matrix","qc_overwrite_array_times","registry_write_preflight","reref_modes","resample_modes","resolver_failures_shadow","resolver_local_explicit","response_channel","response_every_epoch_array","response_inputs_defaults","response_insufficient","response_public_contract","response_rate_grid_bounds","response_scalar_options","response_schema_history","response_xor","step8_manuscript_outputs","step9_pain_only_exports","templates_six_rates","warning_restoration"])
+expected_keys = set(["baseline_routes","cleanline_routes","closure_clone","closure_config","closure_current_surface","closure_function_inventory","closure_generated","closure_git","closure_ignore_hyp","closure_ignore_real","closure_logs","closure_manifest","closure_paths","closure_readme","closure_root","closure_step54","closure_step72","closure_step73","closure_step81","closure_step83","closure_templates","closure_viewer_qc_example","config_profiles_cache","dataset_registry_paths","delete_contracts","dependency_missing","dependency_present","effective_preprocessing_provenance","epoch_failures","epoch_modes","filter_modes","jitter_edges","jitter_shapes_shifts","jitter_ties_padding","line_frequency_edges","line_off_notch","nrf_clear_persistence","nrf_template_preflight","numeric_results","offset_consistency","offset_mapping_fields","offset_no_event","offset_no_source","offset_oob","offset_report_keys","offset_validation","prep_defaults","prep_empty_array","prep_empty_data","prep_inputs","prep_multi_array","preproc_order_history","preprocessing_caller_contract","qc_coord_schema","qc_direct_matrix","qc_overwrite_array_times","registry_write_preflight","reref_modes","resample_modes","resolver_failures_shadow","resolver_local_explicit","response_channel","response_every_epoch_array","response_inputs_defaults","response_insufficient","response_public_contract","response_rate_grid_bounds","response_scalar_options","response_schema_history","response_xor","step8_manuscript_outputs","step9_pain_only_exports","templates_six_rates","warning_restoration"])
 actual_keys = [row.get("requirement_key") for row in coverage]
 require(len(actual_keys) == len(set(actual_keys)), "duplicate requirement key")
 require(set(actual_keys) == expected_keys, "required coverage-key set differs")
@@ -360,7 +360,7 @@ for item in catalog:
     require(represented == item["expected_pass_count"],
             f"case/pass count differs: {item['id']}")
 
-expected_totals = {"runner_sha256":"c37ba16bf9904c4f00a77c9f6850f2cf482c08b0afbed8f027235b8572019ee8","preproc":30,"response":17,"jitter":11,"qc":284,"clean_contract":18,"registry":23,"processing_state":9,"step8_output":5,"step9_export":4,"extended":120}
+expected_totals = {"runner_sha256":"0105c2824e1e4610a25b5b4626b39366a7c7fb656512193c4caf97785eed0251","preproc":30,"response":17,"jitter":11,"qc":284,"clean_contract":18,"registry":23,"processing_state":9,"step8_check_plot":8,"step8_output":5,"step9_export":4,"extended":120}
 require(manifest.get("expected_runtime_totals") == expected_totals,
         "runtime totals differ from the repository test contract")
 runner_bytes = (root / "tests" / "run_all_tests.m").read_bytes()
@@ -392,6 +392,8 @@ require(catalog_item("matlab.registry_paths")["expected_pass_count"] ==
         expected_totals["registry"], "registry-path total differs")
 require(catalog_item("matlab.processing_state")["expected_pass_count"] ==
         expected_totals["processing_state"], "processing-state total differs")
+require(catalog_item("matlab.step8_check_plot")["expected_pass_count"] ==
+        expected_totals["step8_check_plot"], "Step-8.1-check-plot total differs")
 require(catalog_item("matlab.step8_outputs")["expected_pass_count"] ==
         expected_totals["step8_output"], "Step-8-output total differs")
 require(catalog_item("matlab.step9_exports")["expected_pass_count"] ==
@@ -444,7 +446,7 @@ require(oracle_json["boundaries"] == {
     "university_server_accesses": 0,
     "dependency_updates": 0,
 }, "scientific-oracle boundaries differ")
-print("73 coverage rows; 43 named test groups; exact scientific-oracle cardinalities and binding")
+print("74 coverage rows; 44 named test groups; exact scientific-oracle cardinalities and binding")
 PY
 }
 
@@ -465,13 +467,18 @@ check_function_inventory() {
         calc_maxAbsEpoch.m \
         calc_maxAbsPost.m \
         calc_sdEpoch.m \
+        collect_guardrail_event_series.m \
         compute_paired_effect.m \
         convert_curry_to_eeg.m \
         convert_xdf_to_eeg.m \
         delete_unwanted_events.m \
         estimate_response.m \
         jittercorrect.m \
+        load_guardrail_separation_result.m \
         plot_paired_effect_result.m \
+        plot_guardrail_average_psd.m \
+        plot_guardrail_average_tf.m \
+        plot_guardrail_average_ts.m \
         preproc.m \
         quality_control_features.m \
         quality_control_features_with_diagnostics.m \
@@ -485,8 +492,8 @@ check_function_inventory() {
         validate_dataset_registry_paths.m | LC_ALL=C sort > "$expected"
     git -C "$candidate" ls-files functions | sed 's#^functions/##' | LC_ALL=C sort > "$actual"
     diff -u "$expected" "$actual" || return 1
-    [ "$(wc -l < "$actual" | tr -d ' ')" -eq 31 ] || return 1
-    printf 'exact 31-function inventory'
+    [ "$(wc -l < "$actual" | tr -d ' ')" -eq 36 ] || return 1
+    printf 'exact 36-function inventory'
 }
 
 check_template_inventory() {
@@ -534,15 +541,38 @@ required = {
         "function targets = validate_dataset_registry_paths(T, baseDir, stage)",
         "SIMPLE:DatasetRegistry:CanonicalEscape",
     ],
+    "functions/collect_guardrail_event_series.m": [
+        "function seriesByEvent = collect_guardrail_event_series(",
+    ],
+    "functions/plot_guardrail_average_ts.m": [
+        "function [result, handles] = plot_guardrail_average_ts(",
+    ],
+    "functions/plot_guardrail_average_tf.m": [
+        "function [result, handles] = plot_guardrail_average_tf(",
+    ],
+    "functions/plot_guardrail_average_psd.m": [
+        "function [result, handles] = plot_guardrail_average_psd(",
+    ],
+    "functions/load_guardrail_separation_result.m": [
+        "function result = load_guardrail_separation_result(",
+    ],
     "NRFs/nrf_config.ini": ["[term_foot_nox]"],
     "scripts/log_command_window.m": [
         "logsDir = fullfile(projectRoot, 'data', 'logs');",
+    ],
+    "scripts/step_8_gen_1_check_plots.m": [
+        "figure_3_post_core_guardrails_in_the_petal_dataset.pdf",
+        "figure3PanelData = struct();",
+    ],
+    "tests/run_step8_check_plot_tests.m": [
+        "function result = run_step8_check_plot_tests(repoRoot)",
     ],
     "tests/run_all_tests.m": [
         "function results = run_all_tests(repoRoot, eeglabRoot)",
         "simple_scientific_oracle_v1.mat",
         "results.registry = run_dataset_registry_path_tests(repoRoot);",
         "results.processing_state = run_processing_state_tests(repoRoot);",
+        "results.step8_check_plot = run_step8_check_plot_tests(repoRoot);",
         "results.step8_output = run_step8_output_tests(repoRoot);",
         "results.step9_export = run_step9_export_tests(repoRoot);",
     ],
@@ -668,10 +698,16 @@ for parent in (root / "functions", root / "scripts"):
                 bad.append(f"{path.relative_to(root)}:{expression}")
 if bad:
     raise AssertionError("; ".join(bad))
-if len(constructors) != 1:
-    raise AssertionError(f"log-constructor count differs: {constructors}")
+expected_constructor_files = {
+    "scripts/log_command_window.m",
+    "scripts/step_8_gen_1_check_plots.m",
+}
+actual_constructor_files = {item.split(":", 1)[0] for item in constructors}
+if len(constructors) != 2 or actual_constructor_files != expected_constructor_files:
+    raise AssertionError(f"log-constructor inventory differs: {constructors}")
 PY
-    printf 'single data/logs constructor; replacement and ignore anchors present'
+    [ "$?" -eq 0 ] || return 1
+    printf 'logger plus exact Step 8.1 recovery-log path; replacement and ignore anchors present'
 }
 
 check_viewer_qc_example() {
@@ -932,20 +968,17 @@ check_step7_3() {
 
 check_step8_general() {
     python3 - "$candidate" <<'PY'
+import hashlib
 import pathlib
 import re
 import sys
 
 root = pathlib.Path(sys.argv[1])
 
-def assert_logger_contract(name, text):
-    start = "log_command_window('start');"
-    stop = "log_command_window('stop');"
-    if text.count(start) != 1 or text.count(stop) != 1:
-        raise AssertionError(
-            f"Logger calls must occur exactly once in {name}"
-        )
+def digest(relative):
+    return hashlib.sha256((root / relative).read_bytes()).hexdigest()
 
+def script_statements(text):
     statements = []
     in_block_comment = False
     for raw_line in text.splitlines():
@@ -964,7 +997,16 @@ def assert_logger_contract(name, text):
         code = raw_line.split("%", 1)[0].strip()
         if code:
             statements.append(code)
+    return statements
 
+def assert_simple_logger_contract(name, text):
+    start = "log_command_window('start');"
+    stop = "log_command_window('stop');"
+    if text.count(start) != 1 or text.count(stop) != 1:
+        raise AssertionError(
+            f"Logger calls must occur exactly once in {name}"
+        )
+    statements = script_statements(text)
     if not statements or statements[0] != start:
         raise AssertionError(
             f"Logger start is not the first executable statement in {name}"
@@ -981,17 +1023,18 @@ def assert_logger_contract(name, text):
         )
 
 expected = [
-    "step_8_gen_1_sample_details.m",
-    "step_8_gen_2_nrf_details.m",
+    "step_8_gen_1_check_plots.m",
+    "step_8_gen_2_sample_details.m",
+    "step_8_gen_3_nrf_details.m",
 ]
 actual = sorted(path.name for path in (root / "scripts").glob("step_8_*.m"))
 if actual != expected:
     raise AssertionError(f"Step 8 manuscript-output inventory differs: {actual}")
-for name in expected:
+for name in expected[1:]:
     text = (root / "scripts" / name).read_text(encoding="utf-8")
     if "resultsDir = fullfile(baseDir, 'data', 'results');" not in text:
         raise AssertionError(f"Step 8 script is not bound to data/results: {name}")
-    assert_logger_contract(name, text)
+    assert_simple_logger_contract(name, text)
     destructive = [anchor for anchor in ("delete(", "rmdir(", "movefile(")
                    if anchor in text]
     if destructive:
@@ -999,9 +1042,140 @@ for name in expected:
             f"Step 8 may not remove other results artifacts in {name}: {destructive}"
         )
 
+source_hashes = {
+    "scripts/step_8_gen_1_check_plots.m":
+        "b616ef8e9685a2e1b1ee4a12afd3ddb0b318088386fe2f591bffd7edb717bbba",
+    "functions/collect_guardrail_event_series.m":
+        "09fd57796d147f88c008d6a0add4c37ad658ec61f40cff549c349c9541555dc5",
+    "functions/plot_guardrail_average_ts.m":
+        "617b90c939387436f021771bc3a05c0b1d0d905736c6ab7278ca8da1b84fee2d",
+    "functions/plot_guardrail_average_tf.m":
+        "9f7a2fe2ec03d1745f9bf961da6dfc24af13289fbdd78ac619301a679978d32f",
+    "functions/plot_guardrail_average_psd.m":
+        "ae61dd115e3be484b04b2be60541d9bae4b143d3338e7d82e11f949ce67f3088",
+    "functions/load_guardrail_separation_result.m":
+        "2e81686dc395a34cf704b7007ca4f67da1fbb88a97235157bbce91547e385626",
+    "scripts/step_7_check_3_plot_average_ts.m":
+        "8dc8cbf9f3061d459a3679e4ffed15471ce3d7123593d4924a6bb6468f419564",
+    "scripts/step_7_check_4_plot_average_tf.m":
+        "f6be0b96a19b17968dd68864d7321830ffeac0dde477bc63bd284a0e80ac5aff",
+    "scripts/step_7_check_5_plot_average_psd.m":
+        "12429a05e24e22bb1d0efd05c5b83eedba983b51f48e4474f7723cb17cfd62d1",
+    "scripts/step_7_check_6_sep_check_qc.m":
+        "caa150ff2b566fc9f76a921fdf1f7976303bba83a63ed5281ac10d1d3e711188",
+    "scripts/step_7_check_7_sep_check_nrf.m":
+        "dd1a78cf72c97b45713a6489fc77a2704e44e8b191f0b98a03031c2a5dab8140",
+}
+for relative, expected_hash in source_hashes.items():
+    if digest(relative) != expected_hash:
+        raise AssertionError(f"Step 8.1 source/reference anchor differs: {relative}")
+
+step81 = (root / "scripts" / expected[0]).read_text(encoding="utf-8")
+statements = script_statements(step81)
+if not statements or statements[0] != "log_command_window('start');":
+    raise AssertionError("Step 8.1 logger start is not the first executable statement")
+clear_positions = [i for i, value in enumerate(statements)
+                   if re.match(r"^clear(?:\s|;)", value)]
+if not clear_positions or clear_positions[0] <= 0:
+    raise AssertionError("Step 8.1 logger start does not precede clear")
+if step81.count("log_command_window('start');") != 1 or \
+        step81.count("log_command_window('stop');") != 2:
+    raise AssertionError("Step 8.1 guarded logger inventory differs")
+for anchor in (
+    "try", "catch ME", "rethrow(ME);", "figure3LogActive",
+    "figure3LogStopAttempted",
+    "Completed Step 8.1 guardrail figure preparation; committing PDF:",
+):
+    if anchor not in step81:
+        raise AssertionError(f"Step 8.1 guarded finaliser lacks {anchor}")
+
+step81_anchors = [
+    "resultsDir = fullfile(baseDir, 'data', 'results');",
+    "'figure_3_post_core_guardrails_in_the_petal_dataset.pdf'",
+    "'step_8_gen_1_check_plots.log'",
+    "'pooled_screened_eeg_epochs.mat'",
+    "'step_7_check_6_sep_check_qc_result.mat'",
+    "'step_7_check_7_sep_check_nrf_result.mat'",
+    "'ordered', [\"lance_prestim\", \"lance\"]",
+    "figure3Config.use_exclusion_flags = true;",
+    "'fit_time_ms', 100", "'fit_time_ms', 400",
+    "'jitter_ms', 100", "'aggregator', \"mean\"",
+    "'smoothing_ms', 0", "'x_limits_ms', [-100 950]",
+    "'y_limits_uV', [-20 20]", "'voices_per_octave', 12",
+    "'baseline_time_agg', \"mean\"", "'epoch_agg', \"mean\"",
+    "'y_axis_scale', \"linear\"", "'frequency_limits_hz', [3 30]",
+    "'colour_limits_db', [-4 4]", "'epoch_window', \"post-stim\"",
+    "'aggregate_domain', \"linear_power\"",
+    "'frequency_limits_hz', [-1 251]", "'time_bandwidth_product', 4",
+    "'nfft', 1024", "'alpha', 0.05", "'figure_position_cm', [2 2 18 24]",
+    "'part_a', 'A. Time and frequency domain checks'",
+    "'reference', 'Internal reference (lance_prestim)'",
+    "'true', 'True event (lance)'",
+    "'part_b', 'B. Feature separation checks'",
+    "'qc', 'QC feature (MeanAbsDiffNorm)'",
+    "'nrf', 'Later noxious NRF magnitude'",
+    "figure3Config = struct();", "figure3PanelData = struct();",
+    "figure3PanelHandles = struct();", "figure3Figure = figure(",
+    "collect_guardrail_event_series(", "plot_guardrail_average_ts(",
+    "plot_guardrail_average_tf(", "plot_guardrail_average_psd(",
+    "load_guardrail_separation_result(", "plot_paired_effect_result(",
+    "exportgraphics(figure3Figure, figure3PartialPdf, 'ContentType', 'vector');",
+    "figure3InternalFailpoint = \"\";",
+]
+missing = [anchor for anchor in step81_anchors if anchor not in step81]
+if missing:
+    raise AssertionError(f"Step 8.1 fixed route differs: {missing}")
+if step81.count("load(figure3Config.paths.screened_epochs_mat, 'epochs_pooled')") != 1:
+    raise AssertionError("Step 8.1 does not load the screened epoch MAT exactly once")
+if re.search(r"\brun\s*\(", step81, flags=re.IGNORECASE):
+    raise AssertionError("Step 8.1 invokes a numbered Step 7 script with run")
+if re.search(r"step_7_check_[3-7][A-Za-z0-9_]*\s*\(", step81):
+    raise AssertionError("Step 8.1 directly invokes a Step 7 script")
+
+expected_axes = [
+    "figure3-ts-reference", "figure3-ts-true",
+    "figure3-tf-reference", "figure3-tf-true",
+    "figure3-psd-reference", "figure3-psd-true",
+    "figure3-qc-separation", "figure3-nrf-separation",
+]
+expected_labels = [
+    "figure3-label-part-a", "figure3-label-reference",
+    "figure3-label-true", "figure3-label-part-b",
+    "figure3-label-qc", "figure3-label-nrf",
+]
+for tag in expected_axes + expected_labels:
+    if step81.count(tag) < 2:
+        raise AssertionError(f"Step 8.1 tagged inventory lacks checked tag {tag}")
+
+helper_contracts = {
+    "collect_guardrail_event_series.m":
+        "function seriesByEvent = collect_guardrail_event_series(",
+    "plot_guardrail_average_ts.m":
+        "function [result, handles] = plot_guardrail_average_ts(",
+    "plot_guardrail_average_tf.m":
+        "function [result, handles] = plot_guardrail_average_tf(",
+    "plot_guardrail_average_psd.m":
+        "function [result, handles] = plot_guardrail_average_psd(",
+    "load_guardrail_separation_result.m":
+        "function result = load_guardrail_separation_result(",
+}
+for name, signature in helper_contracts.items():
+    text = (root / "functions" / name).read_text(encoding="utf-8")
+    if signature not in text:
+        raise AssertionError(f"Step 8.1 helper signature differs: {name}")
+    for prohibited in ("/Users/", "evalin(", "assignin(",
+                       "log_command_window(", "diary(", "exportgraphics(",
+                       "save(", "writetable("):
+        if prohibited in text:
+            raise AssertionError(f"Step 8.1 helper has prohibited side effect/root: {name} {prohibited}")
+if "figure(" in (root / "functions" / "plot_guardrail_average_ts.m").read_text(encoding="utf-8") or \
+        "figure(" in (root / "functions" / "plot_guardrail_average_tf.m").read_text(encoding="utf-8") or \
+        "figure(" in (root / "functions" / "plot_guardrail_average_psd.m").read_text(encoding="utf-8"):
+    raise AssertionError("A Step 8.1 panel helper creates its own figure")
+
 anchors = {
-    "step_8_gen_1_sample_details.m": [
-        "%% step_8_gen_1_sample_details.m",
+    "step_8_gen_2_sample_details.m": [
+        "%% step_8_gen_2_sample_details.m",
         "fullfile(baseDir, 'data_lists', 'dataset_list.csv')",
         "'medscinet_export_petal.xlsx'",
         "'supplementary_table_1_petal_dataset_characteristics.csv'",
@@ -1015,8 +1189,8 @@ anchors = {
         "writetable(supplementaryTable1, tableOutPath, 'Encoding', 'UTF-8');",
         "local_add_utf8_bom(tableOutPath);",
     ],
-    "step_8_gen_2_nrf_details.m": [
-        "%% step_8_gen_2_nrf_details.m",
+    "step_8_gen_3_nrf_details.m": [
+        "%% step_8_gen_3_nrf_details.m",
         "earlyNRFName    = 'early_NRF_500Hz'",
         "noxiousNRFName  = 'noxious_NRF_500Hz'",
         "pretermNRFName  = 'noxious_preterm_NRF_500Hz'",
@@ -1056,7 +1230,25 @@ for anchor in (
 ):
     if anchor not in readme:
         raise AssertionError(f"README lacks the Step 8 CSV contract: {anchor}")
-print("two Step 8 manuscript-output scripts; two CSVs, one vector PDF and exact-name logs")
+for anchor in (
+    "All three Step 8 manuscript-output scripts",
+    "figure_3_post_core_guardrails_in_the_petal_dataset.pdf",
+    "four Step 8 manuscript artifacts",
+    "It does not call a Step 7 script.",
+):
+    if anchor not in readme:
+        raise AssertionError(f"README lacks the Step 8.1 contract: {anchor}")
+step9_test = (root / "tests" / "run_step9_export_tests.m").read_text(encoding="utf-8")
+step9_test = re.sub(r"'\s*\.\.\.\s*\n\s*'", "", step9_test)
+for artifact in (
+    "figure_3_post_core_guardrails_in_the_petal_dataset.pdf",
+    "supplementary_table_1_petal_dataset_characteristics.csv",
+    "supplementary_table_4_nrf_template_derivation_and_fitting_details.csv",
+    "supplementary_figure_1_nrf_template_visualisations.pdf",
+):
+    if artifact not in step9_test:
+        raise AssertionError(f"Step 9 preservation fixture lacks {artifact}")
+print("three exact Step 8 scripts; fixed Step 8.1 helper/figure/transaction route and unchanged Steps 8.2/8.3")
 PY
 }
 
@@ -1230,8 +1422,10 @@ check_readme() {
         'CleanLine is optional' \
         'Every registry path is validated before a governed write' \
         '### Step 8 — General manuscript outputs' \
-        '`step_8_gen_1_sample_details.m`' \
-        '`step_8_gen_2_nrf_details.m`' \
+        '`step_8_gen_1_check_plots.m`' \
+        '`step_8_gen_2_sample_details.m`' \
+        '`step_8_gen_3_nrf_details.m`' \
+        '`figure_3_post_core_guardrails_in_the_petal_dataset.pdf`' \
         '`supplementary_table_1_petal_dataset_characteristics.csv`' \
         '`supplementary_table_4_nrf_template_derivation_and_fitting_details.csv`' \
         '`supplementary_figure_1_nrf_template_visualisations.pdf`' \
@@ -1335,7 +1529,8 @@ expected_callers = {
     "step_7_check_3_plot_average_ts.m",
     "step_7_check_6_sep_check_qc.m",
     "step_7_check_7_sep_check_nrf.m",
-    "step_8_gen_2_nrf_details.m",
+    "step_8_gen_1_check_plots.m",
+    "step_8_gen_3_nrf_details.m",
 }
 for path in (root / "scripts").glob("*.m"):
     text = path.read_text(encoding="utf-8")
@@ -1347,7 +1542,8 @@ for path in (root / "scripts").glob("*.m"):
     if eeglab and eeglab.start() > add.start():
         issues.append(f"{path.name}: EEGLAB starts after local addpath")
     has_named_assertion = "which(" in text and re.search(r"expected(?:Function|Validator|NRFUtils|NRFUtilsFile)", text)
-    has_shared_assertion = "assert_local_helper_paths(" in text
+    has_shared_assertion = ("assert_local_helper_paths(" in text or
+                            "local_assert_helper_paths(" in text)
     if not (has_named_assertion or has_shared_assertion):
         issues.append(f"{path.name}: no canonical local-function assertion")
 

@@ -35,8 +35,8 @@ files in version control.
 
 Scripts that call the logging helper write their Command Window diary to
 `data/logs/`. A run replaces the existing log for that script, and all logs
-are ignored by Git. Both Step 8 manuscript-output scripts and all six Step 9
-JASP-preparation scripts create exact-name logs.
+are ignored by Git. All three Step 8 manuscript-output scripts and all six
+Step 9 JASP-preparation scripts create exact-name logs.
 
 ## Software and setup
 
@@ -177,25 +177,31 @@ Step 7 provides display and machine-readable checks of the screened results.
 
 ### Step 8 — General manuscript outputs
 
-The two Step 8 scripts create manuscript-ready tables and a figure under
-`data/results/` while retaining the corresponding MATLAB tables or figure for
-inspection. They are `step_8_gen_1_sample_details.m` and
-`step_8_gen_2_nrf_details.m`.
+The three Step 8 scripts create manuscript-ready figures and tables under
+`data/results/` while retaining the corresponding MATLAB figures, panel data
+or tables for inspection. They are `step_8_gen_1_check_plots.m`,
+`step_8_gen_2_sample_details.m` and `step_8_gen_3_nrf_details.m`.
 
 | Script | Responsibility | Inputs | Outputs | Expected current Petal result |
 |---|---|---|---|---|
-| 8.1 | Create Petal participant characteristics | `dataset_list.csv` and `medscinet_export_petal.xlsx` | `supplementary_table_1_petal_dataset_characteristics.csv` | 15 rows x 2 columns; Supplementary Table 1 |
-| 8.2 | Summarise and visualise the three NRF templates | the three configured 500-Hz NRF templates | `supplementary_table_4_nrf_template_derivation_and_fitting_details.csv` and `supplementary_figure_1_nrf_template_visualisations.pdf` | 9 rows x 4 columns and a three-panel vector PDF; Supplementary Table 4 and Supplementary Figure 1 |
+| 8.1 | Assemble the fixed post-core guardrail checks for Figure 3 | screened pooled epochs, the saved Step 7.6/7.7 separation results and the configured early/later noxious 500-Hz NRF templates | `figure_3_post_core_guardrails_in_the_petal_dataset.pdf` | four rows by two columns: time series, time-frequency, PSD, QC separation and NRF separation panels |
+| 8.2 | Create Petal participant characteristics | `dataset_list.csv` and `medscinet_export_petal.xlsx` | `supplementary_table_1_petal_dataset_characteristics.csv` | 15 rows x 2 columns; Supplementary Table 1 |
+| 8.3 | Summarise and visualise the three NRF templates | the three configured 500-Hz NRF templates | `supplementary_table_4_nrf_template_derivation_and_fitting_details.csv` and `supplementary_figure_1_nrf_template_visualisations.pdf` | 9 rows x 4 columns and a three-panel vector PDF; Supplementary Table 4 and Supplementary Figure 1 |
 
-Run Steps 8.1 and 8.2 in numeric order and stop if either script reports an
-error. Each script starts a fresh exact-name Command Window log before clearing
-the Command Window, then validates its required inputs before creating the
-results directory or writing its own scientific targets. A rejected run may
-therefore create or replace only that script's log; it does not create a
-scientific output. A successful rerun replaces its exact log and scientific
-targets. Step 8.1 leaves `participantDetailsTable` and `supplementaryTable1` in
-the workspace; Step 8.2 leaves `supplementaryTable4` and its figure open for
-inspection.
+Run Steps 8.1, 8.2 and 8.3 in numeric order and stop if any script reports an
+error. Each script starts a fresh exact-name Command Window log before clearing the
+Command Window, then validates its required inputs before creating the results
+directory or writing its own scientific targets. A rejected run may therefore
+create or replace only that script's log; it does not create a scientific
+output. A successful rerun replaces its exact log and scientific targets. Step
+8.1 leaves its eight-panel figure, fixed configuration, calculated panel data
+and graphics handles in the workspace for inspection. It calculates both
+`lance_prestim` and `lance` time-series, time-frequency and PSD panels at the
+recording level, then plots the already-saved paired Step 7.6/7.7 QC and NRF
+results without rerunning their bootstrap. It does not call a Step 7 script.
+Step 8.2 leaves `participantDetailsTable` and `supplementaryTable1` in the
+workspace; Step 8.3
+leaves `supplementaryTable4` and its figure open for inspection.
 
 Both Step 8 tables are written as UTF-8 CSV files with a byte-order mark so
 their en dashes and plus/minus symbols display correctly when the files are
@@ -229,7 +235,7 @@ later-numbered Step 9 script through Step 9.6 before importing the final file
 into JASP. Each script replaces its CSV target and exact-name Command Window
 log, so the presence of an older output does not establish that a failed
 rerun succeeded. The five Step 9 `jasp_data_*.csv` files coexist with the
-three Step 8 manuscript artifacts in `data/results/`; Step 9 does not remove
+four Step 8 manuscript artifacts in `data/results/`; Step 9 does not remove
 or replace the Step 8 files.
 
 ## User decisions and scientific boundaries
@@ -255,11 +261,12 @@ test establishes technical behaviour; it does not replace those decisions.
 `tests/run_all_tests.m` uses synthetic EEG fixtures only. It exercises the
 preprocessing, response, jitter and QC contracts, all six bundled templates,
 path precedence, local template binding, registry paths, effective processing
-state, NRF state replacement, the two Step 8 manuscript-output routes, the
-complete pain-only Step 9 six-script CSV chain and the public APIs in the
-verified MATLAB/EEGLAB environment. The Step 8 and Step 9 tests run temporary
+state, NRF state replacement, all three Step 8 manuscript-output routes, the
+complete pain-only Step 9 six-script CSV chain
+and the public APIs in the verified MATLAB/EEGLAB environment. The Step 8 and
+Step 9 tests run temporary
 copies of the relevant scripts against synthetic fixtures. They verify the
-three Step 8 manuscript artifacts, including the vector-PDF contract, and the
+four Step 8 manuscript artifacts, including both PDF contracts, and the
 five Step 9 JASP CSV artifacts. The suite does not read project datasets or
 run a numbered script against project data.
 Run it in a dedicated MATLAB session because the temporary script-interface

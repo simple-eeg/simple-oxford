@@ -1,4 +1,4 @@
-%% step_8_gen_2_nrf_details.m
+%% step_8_gen_3_nrf_details.m
 % Create and save:
 %   Supplementary Table 4. NRF template-derivation and fitting details.
 %   Supplementary Figure 1. NRF template visualisations.

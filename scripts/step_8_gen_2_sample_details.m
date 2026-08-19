@@ -1,4 +1,4 @@
-%% step_8_gen_1_sample_details.m
+%% step_8_gen_2_sample_details.m
 %
 % Create the participant-level source table and save/display:
 %   Supplementary Table 1. Petal dataset characteristics.
