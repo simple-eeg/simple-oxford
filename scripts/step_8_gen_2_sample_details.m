@@ -10,8 +10,10 @@
 %
 % Inputs:
 %   1) data_lists/dataset_list.csv
-%      Required column:
-%         - subjectID
+%      Required canonical columns:
+%         - subjectID, sessionID, runID, path_raw, EEGfile_raw
+%      The optional replacement-ID route additionally supplies the complete
+%      five-column *_orig mapping created by Step 2.10.
 %
 %   2) data_lists/medscinet_export_petal.xlsx
 %      Required columns:
@@ -28,8 +30,13 @@
 %           Behavioural State
 %
 % Matching rule:
-%   subjectID = (RECD - Research project, with uppercase X changed to
-%   lowercase x) + (RECD - Participant number)
+%   MedSciNet source ID = (RECD - Research project, with "OX" changed to
+%   "Ox") + (RECD - Participant number). With an original registry this is
+%   matched directly. With a mapped registry it is translated through the
+%   private participant map and only replacement subjectID is retained in
+%   participantDetailsTable. Mapped mode requires exactly one complete source
+%   row for each admitted participant and ignores malformed or duplicated
+%   source-only identifier rows.
 %
 % Output:
 %   data/results/supplementary_table_1_petal_dataset_characteristics.csv
@@ -45,6 +52,13 @@ clear; clc;
 
 %% Paths
 baseDir = '/Users/lukebaxter/Developer/simple-eeg/simple-oxford';
+functionsDir = fullfile(baseDir, 'functions');
+addpath(functionsDir, '-begin');
+clear load_dataset_identity_registry construct_medscinet_subject_ids
+rehash path
+local_assert_helper_paths(functionsDir, { ...
+    'load_dataset_identity_registry', ...
+    'construct_medscinet_subject_ids'});
 
 datasetInPath = fullfile(baseDir, 'data_lists', 'dataset_list.csv');
 medInPath = fullfile(baseDir, 'data_lists', ...
@@ -62,28 +76,13 @@ if ~isfile(medInPath)
     error('Input file not found: %s', medInPath);
 end
 
-%% Read the dataset registry and establish the participant master
-datasetOpts = detectImportOptions(datasetInPath, ...
-    'PreserveVariableNames', true);
-if any(strcmp(datasetOpts.VariableNames, 'subjectID'))
-    datasetOpts = setvartype(datasetOpts, 'subjectID', 'string');
-end
-datasetTbl = readtable(datasetInPath, datasetOpts);
-
-if ~any(strcmp(datasetTbl.Properties.VariableNames, 'subjectID'))
-    error('Missing required column in dataset_list.csv: subjectID');
-end
-
-cohortSubjectID = local_clean_text(datasetTbl.subjectID);
-if isempty(cohortSubjectID) || any(cohortSubjectID == "")
-    error('SimpleOxford:SampleDetails:InvalidDatasetList', ...
-        'dataset_list.csv must contain nonblank subjectID values.');
-end
-if numel(unique(cohortSubjectID)) ~= numel(cohortSubjectID)
-    error('SimpleOxford:SampleDetails:InvalidDatasetList', ...
-        'dataset_list.csv subjectID values must be unique.');
-end
-cohortSubjectID = sort(cohortSubjectID);
+%% Read the dataset registry and establish the participant identity bridge
+identity = load_dataset_identity_registry(datasetInPath);
+identityMode = identity.mode;
+participantMap = identity.participant_map;
+participantMap = sortrows(participantMap, 'subjectID');
+cohortSourceID = participantMap.sourceSubjectID;
+cohortSubjectID = participantMap.subjectID;
 
 %% Read medscinet_export_petal.xlsx
 medOpts = detectImportOptions(medInPath, 'PreserveVariableNames', true);
@@ -126,60 +125,96 @@ if ~isempty(missingMedVars)
         strjoin(missingMedVars, ', '));
 end
 
-%% Construct MedSciNet subjectID
-proj = local_clean_text(medTbl.('RECD - Research project'));
-part = local_clean_text(medTbl.('RECD - Participant number'));
-proj = replace(proj, "X", "x");
-medSubjectID = local_clean_text(proj + part);
+%% Resolve exactly one source row per admitted participant
+projectComponent = local_clean_text( ...
+    medTbl.('RECD - Research project'));
+participantComponent = local_clean_text( ...
+    medTbl.('RECD - Participant number'));
 
-nonMissingIDMask = medSubjectID ~= "";
-idsToCheck = medSubjectID(nonMissingIDMask);
-[uniqueIDs, ~, groupIdx] = unique(idsToCheck);
-dupCounts = accumarray(groupIdx, 1);
-dupIDs = uniqueIDs(dupCounts > 1);
-if ~isempty(dupIDs)
-    error(['Duplicate constructed subjectID(s) found in ' ...
-        'medscinet_export_petal.xlsx: %s'], ...
-        strjoin(cellstr(dupIDs), ', '));
+if identityMode == "original"
+    % Preserve strict whole-source validation in the original route.
+    medSubjectID = construct_medscinet_subject_ids( ...
+        projectComponent, participantComponent);
+    nonMissingIDMask = medSubjectID ~= "";
+    idsToCheck = medSubjectID(nonMissingIDMask);
+    [~, ~, groupIdx] = unique(idsToCheck);
+    dupCounts = accumarray(groupIdx, 1);
+    duplicateGroups = find(dupCounts > 1);
+    if ~isempty(duplicateGroups)
+        nonMissingRows = find(nonMissingIDMask);
+        duplicateSourceRows = nonMissingRows( ...
+            ismember(groupIdx, duplicateGroups));
+        error('SimpleOxford:SampleDetails:DuplicateSourceID', ...
+            ['The MedSciNet source workbook contains %d duplicated ' ...
+             'participant ID group(s); first affected source row: %d.'], ...
+            numel(duplicateGroups), duplicateSourceRows(1));
+    end
+    [isMatched, medLoc] = ismember(cohortSourceID, medSubjectID);
+else
+    % In mapped mode, malformed or duplicated source-only rows are outside
+    % the admitted master cohort. Build IDs only for complete component pairs
+    % and require exactly one such row for every admitted original ID.
+    completeSourceRows = projectComponent ~= "" & participantComponent ~= "";
+    completeRowNumbers = find(completeSourceRows);
+    completeSourceIDs = construct_medscinet_subject_ids( ...
+        projectComponent(completeSourceRows), ...
+        participantComponent(completeSourceRows));
+    [uniqueSourceIDs, ~, sourceGroups] = unique( ...
+        completeSourceIDs, 'stable');
+    sourceCounts = accumarray(sourceGroups, 1);
+    duplicatedSourceIDs = uniqueSourceIDs(sourceCounts > 1);
+    duplicatedMapRows = find(ismember( ...
+        cohortSourceID, duplicatedSourceIDs));
+    if ~isempty(duplicatedMapRows)
+        error('SimpleOxford:SampleDetails:DuplicateAdmittedSourceID', ...
+            ['An admitted participant has multiple MedSciNet rows; first ' ...
+             'affected participant-map row: %d.'], duplicatedMapRows(1));
+    end
+    [isMatched, completeLocations] = ismember( ...
+        cohortSourceID, completeSourceIDs);
+    medLoc = zeros(numel(cohortSourceID), 1);
+    medLoc(isMatched) = completeRowNumbers(completeLocations(isMatched));
 end
-
-%% Match the registry cohort to MedSciNet
-[isMatched, medLoc] = ismember(cohortSubjectID, medSubjectID);
 if any(~isMatched)
-    unmatchedIDs = cohortSubjectID(~isMatched);
-    error('No matching MedSciNet row found for subjectID(s): %s', ...
-        strjoin(cellstr(unmatchedIDs), ', '));
+    firstMissing = find(~isMatched, 1, 'first');
+    error('SimpleOxford:SampleDetails:MissingSourceMatch', ...
+        ['No matching MedSciNet row was found for %d admitted ' ...
+         'participant(s); first affected participant-map row: %d.'], ...
+        sum(~isMatched), firstMissing);
 end
 
 %% Convert and derive participant characteristics
+% Restrict all clinical-field validation and recoding to the admitted
+% participant rows. MedSciNet-only rows are deliberately outside this table.
+selectedMedTbl = medTbl(medLoc, :);
 gaBirthW = local_to_numeric( ...
-    medTbl.('BIRTH - Gestation at birth (w)'));
+    selectedMedTbl.('BIRTH - Gestation at birth (w)'));
 gaBirthD = local_to_numeric( ...
-    medTbl.('BIRTH - Gestation at birth (d)'));
-birthWt = local_to_numeric(medTbl.('BIRTH - Birth weight'));
+    selectedMedTbl.('BIRTH - Gestation at birth (d)'));
+birthWt = local_to_numeric(selectedMedTbl.('BIRTH - Birth weight'));
 pmaStudyW = local_to_numeric( ...
-    medTbl.('TESTOD - Gestational age at test occasion - w'));
+    selectedMedTbl.('TESTOD - Gestational age at test occasion - w'));
 pmaStudyD = local_to_numeric( ...
-    medTbl.('TESTOD - Gestational age at test occasion - d'));
+    selectedMedTbl.('TESTOD - Gestational age at test occasion - d'));
 
 ageGaBirthWeeks = gaBirthW + (gaBirthD ./ 7);
 agePmaStudyWeeks = pmaStudyW + (pmaStudyD ./ 7);
 agePnaStudyDays = (agePmaStudyWeeks - ageGaBirthWeeks) .* 7;
 
-sex = local_clean_text(medTbl.('BIRTH - Gender'));
-trialArm = local_recode_trial_arm(medTbl.(colArm));
-sleepState = local_recode_sleep_state(medTbl.(colSleep));
+sex = local_clean_text(selectedMedTbl.('BIRTH - Gender'));
+trialArm = local_recode_trial_arm(selectedMedTbl.(colArm));
+sleepState = local_recode_sleep_state(selectedMedTbl.(colSleep));
 
 %% Build the participant-level workspace table
 participantDetailsTable = table();
 participantDetailsTable.subjectID = cohortSubjectID;
-participantDetailsTable.age_ga_birth_weeks = ageGaBirthWeeks(medLoc);
-participantDetailsTable.age_pma_study_weeks = agePmaStudyWeeks(medLoc);
-participantDetailsTable.age_pna_study_days = agePnaStudyDays(medLoc);
-participantDetailsTable.birthweight_grams = birthWt(medLoc);
-participantDetailsTable.sex = sex(medLoc);
-participantDetailsTable.trial_arm = trialArm(medLoc);
-participantDetailsTable.HL_sleep_state = sleepState(medLoc);
+participantDetailsTable.age_ga_birth_weeks = ageGaBirthWeeks;
+participantDetailsTable.age_pma_study_weeks = agePmaStudyWeeks;
+participantDetailsTable.age_pna_study_days = agePnaStudyDays;
+participantDetailsTable.birthweight_grams = birthWt;
+participantDetailsTable.sex = sex;
+participantDetailsTable.trial_arm = trialArm;
+participantDetailsTable.HL_sleep_state = sleepState;
 participantDetailsTable = sortrows(participantDetailsTable, 'subjectID');
 
 %% Fail closed if the manuscript-summary denominator would be ambiguous
@@ -259,6 +294,8 @@ supplementaryTable1 = table(Characteristic, Value);
 fprintf(['\nSupplementary Table 1. Petal dataset characteristics. ' ...
     'Values are median (IQR) or n (%%).\n\n']);
 disp(supplementaryTable1);
+fprintf('Identity route: %s (%d admitted participants).\n', ...
+    identityMode, height(participantDetailsTable));
 
 %% Create the results folder and save the validated manuscript table
 if ~isfolder(resultsDir)
@@ -271,6 +308,17 @@ end
 writetable(supplementaryTable1, tableOutPath, 'Encoding', 'UTF-8');
 local_add_utf8_bom(tableOutPath);
 fprintf('Saved Supplementary Table 1: %s\n', tableOutPath);
+
+% Keep the documented manuscript tables while dropping private source-ID
+% working variables from the successful base workspace.
+clear identity participantMap cohortSourceID medSubjectID medTbl selectedMedTbl medOpts ...
+    medStringVars medStringVarsPresent nonMissingIDMask idsToCheck ...
+    groupIdx dupCounts duplicateGroups duplicateSourceRows ...
+    nonMissingRows ...
+    isMatched medLoc projectComponent participantComponent ...
+    completeSourceRows completeRowNumbers completeSourceIDs ...
+    uniqueSourceIDs sourceGroups sourceCounts duplicatedSourceIDs ...
+    duplicatedMapRows completeLocations;
 
 log_command_window('stop');
 
@@ -318,7 +366,7 @@ for i = 1:numel(values)
         values(i) = "Intervention";
     else
         error('SimpleOxford:SampleDetails:UnexpectedCategory', ...
-            'Unexpected trial-arm source value: %s', values(i));
+            'Unexpected trial-arm category at admitted participant row %d.', i);
     end
 end
 end
@@ -336,18 +384,19 @@ for i = 1:numel(values)
         values(i) = "Awake";
     else
         error('SimpleOxford:SampleDetails:UnexpectedCategory', ...
-            'Unexpected heel-lance sleep-state source value: %s', ...
-            values(i));
+            ['Unexpected heel-lance sleep-state category at admitted ' ...
+             'participant row %d.'], i);
     end
 end
 end
 
 function local_require_categories(values, allowed, fieldName)
-unexpected = setdiff(unique(values), allowed);
-if ~isempty(unexpected)
+unexpected = ~ismember(values, allowed);
+if any(unexpected)
+    firstRow = find(unexpected, 1, 'first');
     error('SimpleOxford:SampleDetails:UnexpectedCategory', ...
-        'Unexpected %s value(s): %s', fieldName, ...
-        strjoin(cellstr(unexpected), ', '));
+        'Unexpected %s category at admitted participant row %d.', ...
+        fieldName, firstRow);
 end
 end
 
@@ -401,4 +450,23 @@ if nWritten ~= numel(bytes) + numel(utf8Bom)
         'Could not write the complete Excel-compatible UTF-8 CSV.');
 end
 clear writerCleanup;
+end
+
+function local_assert_helper_paths(functionsDir, helperNames)
+for helperIndex = 1:numel(helperNames)
+    helperName = helperNames{helperIndex};
+    expectedPath = char(java.io.File(fullfile( ...
+        functionsDir, [helperName '.m'])).getCanonicalPath());
+    resolvedPath = which(helperName);
+    if isempty(resolvedPath)
+        error('SimpleOxford:SampleDetails:MissingHelper', ...
+            'Required repository helper is unavailable: %s', helperName);
+    end
+    resolvedPath = char(java.io.File(resolvedPath).getCanonicalPath());
+    if ~strcmp(resolvedPath, expectedPath)
+        error('SimpleOxford:SampleDetails:WrongHelper', ...
+            ['Required helper %s must resolve to this checkout. Expected ' ...
+             '%s, resolved %s.'], helperName, expectedPath, resolvedPath);
+    end
+end
 end

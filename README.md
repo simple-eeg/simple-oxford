@@ -149,6 +149,33 @@ optional filtering or latency rules, converts supported source formats to
 EEGLAB, checks channels, and creates `data/raw/` plus the final
 `data_lists/dataset_list.csv`.
 
+Step 2.9 creates the ordinary five-column registry in this exact order:
+`subjectID`, `sessionID`, `runID`, `path_raw`, and `EEGfile_raw`. Two final
+Step 2 scripts are optional:
+
+- `step_2_raw_10_pseudonymise_ids.m` preserves the complete original raw tree
+  as private `data/raw_orig/`, builds a new active `data/raw/` containing the
+  admitted recordings under replacement subject/session/run labels, and
+  expands the private registry to the exact mapped core
+  `subjectID_orig`, `sessionID_orig`, `runID_orig`, `subjectID`, `sessionID`,
+  `runID`, `path_raw_orig`, `path_raw`, `EEGfile_raw_orig`, `EEGfile_raw`.
+  Replacement labels preserve leading zeros and follow the recording
+  hierarchy. The copied `.set` bytes are not altered by this script.
+- `step_2_raw_11_sanitise_sets.m` may run only after Step 2.10. It sanitises
+  identifier- and path-bearing metadata inside the active pseudonymised
+  `.set` files while preserving the EEG signals and scientific metadata. It
+  never changes `data/raw_orig/`.
+
+The supported routes are therefore: skip both scripts; run Step 2.10 only; or
+run Step 2.10 followed by Step 2.11. Running Step 2.11 without Step 2.10 is
+rejected. Both scripts are fail-closed transactions with restart recovery;
+they run only immediately after Step 2.9 and before material Step 3-or-later
+state, and they do not use the university server. `dataset_list.csv`,
+`data/raw_orig/`, and an unsanitised Step-2.10-only `data/raw/` remain private
+linkage material. Even sanitised replacement SETs remain governed,
+pseudonymised research data and are not automatically suitable for sharing.
+The replacement-ID route is pseudonymisation, not anonymisation.
+
 Manual work can include completing event `Type` mappings, selecting event
 filters, marking latency corrections and reviewing channel inventories.
 
@@ -200,8 +227,10 @@ and graphics handles in the workspace for inspection. It calculates both
 recording level, then plots the already-saved paired Step 7.6/7.7 QC and NRF
 results without rerunning their bootstrap. It does not call a Step 7 script.
 Step 8.2 leaves `participantDetailsTable` and `supplementaryTable1` in the
-workspace; Step 8.3
-leaves `supplementaryTable4` and its figure open for inspection.
+workspace. In the optional mapped route it uses the private registry only to
+translate the MedSciNet source identity to replacement `subjectID`; the saved
+aggregate table contains no identifier and is scientifically unchanged. Step
+8.3 leaves `supplementaryTable4` and its figure open for inspection.
 
 Both Step 8 tables are written as UTF-8 CSV files with a byte-order mark so
 their en dashes and plus/minus symbols display correctly when the files are
@@ -223,7 +252,7 @@ metadata and write under `data/results/`. They are numbered
 | 9.1 | Reshape screened QC features by participant | `jasp_data_eeg_qc.csv` | 104 rows x 19 columns; intermediate |
 | 9.2 | Reshape screened NRF features by participant | `jasp_data_eeg_nrf.csv` | 104 rows x 5 columns; intermediate |
 | 9.3 | Match and combine the QC and NRF tables | `jasp_data_eeg.csv` | 104 rows x 23 columns; intermediate |
-| 9.4 | Derive trial arm and heel-lance sleep state | `jasp_data_other.csv` | 114 rows x 3 columns; intermediate, including 10 metadata-only records |
+| 9.4 | Derive trial arm and heel-lance sleep state | `jasp_data_other.csv` | original route: 114 rows x 3 columns, including 10 metadata-only records; mapped route: the admitted 104 rows x 3 columns |
 | 9.5 | Match study metadata to the EEG participants | `jasp_data_all.csv` | 104 rows x 25 columns; provisional |
 | 9.6 | Add current-screening and publication-membership columns | `jasp_data_all.csv` | 104 rows x 28 columns; final JASP endpoint |
 
@@ -237,6 +266,15 @@ log, so the presence of an older output does not establish that a failed
 rerun succeeded. The five Step 9 `jasp_data_*.csv` files coexist with the
 four Step 8 manuscript artifacts in `data/results/`; Step 9 does not remove
 or replace the Step 8 files.
+
+The external MedSciNet workbooks always retain their original private study
+IDs. In the optional mapped route, Steps 9.4 and 9.6 translate those IDs through
+the private `subjectID_orig` to `subjectID` registry map before matching; Step
+9.5 validates that its intermediates use one consistent namespace. The final
+104-participant cohort and all scientific values are unchanged. All MATLAB
+imports and output checks keep identifier columns as text, so replacement IDs
+such as `001`, `002`, and `010` retain their leading zeros through the final
+Step 9 CSV.
 
 ## User decisions and scientific boundaries
 
@@ -261,7 +299,8 @@ test establishes technical behaviour; it does not replace those decisions.
 `tests/run_all_tests.m` uses synthetic EEG fixtures only. It exercises the
 preprocessing, response, jitter and QC contracts, all six bundled templates,
 path precedence, local template binding, registry paths, effective processing
-state, NRF state replacement, all three Step 8 manuscript-output routes, the
+state, the optional Step 2 identity and `.set`-sanitisation transactions, NRF
+state replacement, all three Step 8 manuscript-output scripts, the
 complete pain-only Step 9 six-script CSV chain
 and the public APIs in the verified MATLAB/EEGLAB environment. The Step 8 and
 Step 9 tests run temporary

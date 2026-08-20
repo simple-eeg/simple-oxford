@@ -1,7 +1,7 @@
 %% step_1_source_1_create_dataset_list_prelim.m
 % Generate EEG File List from MedSciNet Export
 % This script loops through each subject-session pair in a MedSciNet export,
-% checks the remote server for EEG data files, determines the EEG format,
+% checks the external source folder for EEG data files, determines the EEG format,
 % generates expected sidecar file names, and saves the output to a spreadsheet.
 %
 % Naming systems supported (selection is per-row, from MedSciNet):
@@ -17,11 +17,19 @@ clear; clc;
 
 %% Section 1: Setup
 
-% Define base paths for local files and remote server
+% Define base paths for local files and external source material
 local_base   = '/Users/lukebaxter/Developer/simple-eeg/simple-oxford';
 medscinet_file = fullfile(local_base, 'data_lists', 'medscinet_export_petal.xlsx');
 output_file  = fullfile(local_base, 'data_lists', 'dataset_list_prelim.xlsx');
-remote_base  = '/Volumes/NDCN_SLATER/PiPAgroup_data_2TS/pipagroup_data_backup';
+remote_base  = '<EDIT_APPROVED_EXTERNAL_SOURCE_ROOT>';
+
+% Replace the placeholder locally with the approved source folder. Its private
+% path is intentionally neither stored in this repository nor printed on failure.
+if strcmp(remote_base, '<EDIT_APPROVED_EXTERNAL_SOURCE_ROOT>') || ~isfolder(remote_base)
+    error('step_1_source_1_create_dataset_list_prelim:SourceRootUnavailable', ...
+        ['Set remote_base to the approved external source folder before running. ', ...
+        'The configured source folder is unavailable; its path is not displayed.']);
+end
 
 % Read the MedSciNet spreadsheet
 med_data = readtable(medscinet_file, 'PreserveVariableNames', true);
