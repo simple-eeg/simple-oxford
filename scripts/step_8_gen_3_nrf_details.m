@@ -111,14 +111,14 @@ peakSmoothingWidthSamps = 5;
 % =========================================================================
 earlyN              = 54;
 noxiousN            = 18;
-pretermN            = 30;
+pretermN            = 47;
 
 earlyPMAMin         = 36.6;
 earlyPMAMax         = 42.6;
 noxiousPMAMin       = 37.1;
 noxiousPMAMax       = 42.7;
-pretermPMAMin       = 30.0;
-pretermPMAMax       = 33.6;
+pretermPMAMin       = 28.1;
+pretermPMAMax       = 39.7;
 
 earlyProcedure      = 'Heel lance';
 noxiousProcedure    = 'Heel lance';
