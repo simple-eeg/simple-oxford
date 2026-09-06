@@ -211,6 +211,10 @@ fits. Step 5 creates individual and pooled summaries. Step 6 creates the fixed
 screening package, records manual decisions and applies them to pooled outputs.
 Step 7 provides display and machine-readable checks of the screened results.
 
+The Step 6.2 viewer offers `File > Save PDF...` to save the complete current
+display, including all plots and the Navigator, to a PDF location chosen by
+the user. Exporting this snapshot does not change the screening decisions.
+
 ### Step 8 — General manuscript outputs
 
 The three Step 8 scripts create manuscript-ready figures and tables under
