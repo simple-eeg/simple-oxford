@@ -35,8 +35,9 @@ files in version control.
 
 Scripts that call the logging helper write their Command Window diary to
 `data/logs/`. A run replaces the existing log for that script, and all logs
-are ignored by Git. All three Step 8 manuscript-output scripts and all six
-Step 9 JASP-preparation scripts create exact-name logs.
+are ignored by Git. All three Step 8 manuscript-output scripts, all six Step 9
+JASP-preparation scripts, and the Step 10.1 Figure 4 assembly-base script
+create exact-name logs.
 
 ## Software and setup
 
@@ -273,7 +274,8 @@ into JASP. Each script replaces its CSV target and exact-name Command Window
 log, so the presence of an older output does not establish that a failed
 rerun succeeded. The five Step 9 `jasp_data_*.csv` files coexist with the
 four Step 8 manuscript artifacts in `data/results/`; Step 9 does not remove
-or replace the Step 8 files.
+or replace the Step 8 files. Step 10.1 adds its Figure 4 assembly-base PDF to
+the same directory without removing or replacing those outputs.
 
 The external MedSciNet workbooks always retain their original private study
 IDs. In the optional mapped route, Steps 9.4 and 9.6 translate those IDs through
@@ -283,6 +285,28 @@ the private `subjectID_orig` to `subjectID` registry map before matching; Step
 imports and output checks keep identifier columns as text, so replacement IDs
 such as `001`, `002`, and `010` retain their leading zeros through the final
 Step 9 CSV.
+
+### Step 10 — Figure 4 assembly base
+
+`step_10_gen_1_figure_4_base.m` creates the MATLAB assembly base for main
+manuscript Figure 4. It requires the final Step 9.6
+`data/results/jasp_data_all.csv` and the accepted saved
+`data/results/jasp_data_all.jasp` archive. Participant counts, trial-arm
+assignments, retained-set membership, and nesting are read and checked from the
+CSV. The treatment estimates and credible intervals are fixed display inputs
+transcribed from the accepted JASP analysis. The archive is checked for
+presence only; the script performs no statistical analysis and does not parse
+or rerun JASP.
+
+Panels A–C are constructed in MATLAB. Panel B uses four equal-width bars to
+show retained and excluded composition for the two retained-set definitions
+within each arm, with exact counts shown as labels. Panels D and E are
+intentionally blank regions for later insertion of author-exported JASP plots.
+
+A successful run writes the local vector PDF
+`data/results/figure_4_petal_applications_base.pdf` and the exact-name Command
+Window log `data/logs/step_10_gen_1_figure_4_base.log`. The generated base is
+not the completed Figure 4.
 
 ## User decisions and scientific boundaries
 
