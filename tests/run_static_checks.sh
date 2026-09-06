@@ -1109,7 +1109,7 @@ for name in expected[1:]:
 
 source_hashes = {
     "scripts/step_8_gen_1_check_plots.m":
-        "b616ef8e9685a2e1b1ee4a12afd3ddb0b318088386fe2f591bffd7edb717bbba",
+        "0b0b7b2bf6ce56f6452fff852778bff71184636127e082bee6c9848528aa1eec",
     "functions/collect_guardrail_event_series.m":
         "09fd57796d147f88c008d6a0add4c37ad658ec61f40cff549c349c9541555dc5",
     "functions/plot_guardrail_average_ts.m":
@@ -1174,10 +1174,10 @@ step81_anchors = [
     "'frequency_limits_hz', [-1 251]", "'time_bandwidth_product', 4",
     "'nfft', 1024", "'alpha', 0.05", "'figure_position_cm', [2 2 18 24]",
     "'part_a', 'A. Time and frequency domain checks'",
-    "'reference', 'Internal reference (lance_prestim)'",
-    "'true', 'True event (lance)'",
+    "'reference', 'Internal reference'",
+    "'true', 'True event'",
     "'part_b', 'B. Feature separation checks'",
-    "'qc', 'QC feature (MeanAbsDiffNorm)'",
+    "'qc', 'QC feature'",
     "'nrf', 'Later noxious NRF magnitude'",
     "figure3Config = struct();", "figure3PanelData = struct();",
     "figure3PanelHandles = struct();", "figure3Figure = figure(",
