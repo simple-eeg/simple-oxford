@@ -2088,7 +2088,7 @@
       "id": "BASE-GEN-001",
       "requirement_key": "step8_manuscript_outputs",
       "surface": "scripts.step_8_manuscript_outputs",
-      "requirement": "Step 8 contains exactly three ordered manuscript-output scripts. Step 8.1 creates the fixed recording-level four-by-two Figure 3 PDF from validated screened epochs and saved Step 7.6/7.7 schema-v2 results without invoking a Step 7 script or recalculating its bootstrap, and commits its PDF transactionally while retaining the figure, configuration, panel data and handles. Step 8.2 creates the Petal participant-characteristics table. Step 8.3 creates the NRF summary table and template figure. Together they save exactly four manuscript artefacts under data/results and create exact-name replacement logs. The CSV outputs retain their accepted UTF-8-BOM and publication-label contracts, and rejected routes preserve all unrelated results.",
+      "requirement": "Step 8 contains exactly three ordered manuscript-output scripts. Step 8.1 creates the fixed recording-level four-by-two Figure 3a PDF from validated screened epochs and saved Step 7.6/7.7 schema-v2 results without invoking a Step 7 script or recalculating its bootstrap, and commits its PDF transactionally while retaining the figure, configuration, panel data and handles. Step 8.2 creates the Petal participant-characteristics table. Step 8.3 creates the NRF summary table and template figure. Together they save exactly four manuscript artefacts under data/results and create exact-name replacement logs. The CSV outputs retain their accepted UTF-8-BOM and publication-label contracts, and rejected routes preserve all unrelated results.",
       "test_refs": [
         {
           "test_id": "matlab.step8_check_plot"
@@ -2106,7 +2106,7 @@
       "id": "BASE-CLS-020",
       "requirement_key": "closure_step81",
       "surface": "scripts.step_8_gen_1_check_plots",
-      "requirement": "The fixed Step 8.1 guardrail figure uses the exact five canonically bound helper interfaces, matches active Steps 7.3--7.5 for both selected events, consumes fully validated saved schema-v2 separation results without bootstrap or RNG change, exposes the accepted tagged eight-panel and six-label inspection surface, and restores or removes its owned PDF transaction on every rejected route.",
+      "requirement": "The fixed Step 8.1 post-screening descriptive-check figure uses the exact five canonically bound helper interfaces, matches active Steps 7.3--7.5 for both selected events, consumes fully validated saved schema-v2 separation results without bootstrap or RNG change, exposes the accepted tagged eight-panel and six-label inspection surface, and restores or removes its owned PDF transaction on every rejected route.",
       "test_refs": [
         {
           "test_id": "matlab.step8_check_plot"

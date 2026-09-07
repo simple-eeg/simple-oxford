@@ -613,7 +613,7 @@ required = {
         "run_sanitisation_transaction",
     ],
     "scripts/step_8_gen_1_check_plots.m": [
-        "figure_3_post_core_guardrails_in_the_petal_dataset.pdf",
+        "figure_3a_post_screening_descriptive_checks_petal.pdf",
         "figure3PanelData = struct();",
     ],
     "tests/run_step8_check_plot_tests.m": [
@@ -1109,7 +1109,7 @@ for name in expected[1:]:
 
 source_hashes = {
     "scripts/step_8_gen_1_check_plots.m":
-        "0b0b7b2bf6ce56f6452fff852778bff71184636127e082bee6c9848528aa1eec",
+        "ec64c9c7e0394738f767e8a7b95b40a792e371194c29fa79b98331840f1b1166",
     "functions/collect_guardrail_event_series.m":
         "09fd57796d147f88c008d6a0add4c37ad658ec61f40cff549c349c9541555dc5",
     "functions/plot_guardrail_average_ts.m":
@@ -1149,14 +1149,15 @@ if step81.count("log_command_window('start');") != 1 or \
 for anchor in (
     "try", "catch ME", "rethrow(ME);", "figure3LogActive",
     "figure3LogStopAttempted",
-    "Completed Step 8.1 guardrail figure preparation; committing PDF:",
+    "Completed Step 8.1 post-screening descriptive-check figure ",
+    "preparation; committing PDF: %s\\n",
 ):
     if anchor not in step81:
         raise AssertionError(f"Step 8.1 guarded finaliser lacks {anchor}")
 
 step81_anchors = [
     "resultsDir = fullfile(baseDir, 'data', 'results');",
-    "'figure_3_post_core_guardrails_in_the_petal_dataset.pdf'",
+    "'figure_3a_post_screening_descriptive_checks_petal.pdf'",
     "'step_8_gen_1_check_plots.log'",
     "'pooled_screened_eeg_epochs.mat'",
     "'step_7_check_6_sep_check_qc_result.mat'",
@@ -1173,10 +1174,12 @@ step81_anchors = [
     "'aggregate_domain', \"linear_power\"",
     "'frequency_limits_hz', [-1 251]", "'time_bandwidth_product', 4",
     "'nfft', 1024", "'alpha', 0.05", "'figure_position_cm', [2 2 18 24]",
-    "'part_a', 'A. Time and frequency domain checks'",
+    "'part_a', 'Time and frequency domain checks'",
     "'reference', 'Internal reference'",
     "'true', 'True event'",
-    "'part_b', 'B. Feature separation checks'",
+    "'part_b', 'Feature separation checks'",
+    "'figure3-label-part-a', 'center'",
+    "'figure3-label-part-b', 'center'",
     "'qc', 'QC feature'",
     "'nrf', 'Later noxious NRF magnitude'",
     "figure3Config = struct();", "figure3PanelData = struct();",
@@ -1297,7 +1300,7 @@ for anchor in (
         raise AssertionError(f"README lacks the Step 8 CSV contract: {anchor}")
 for anchor in (
     "All three Step 8 manuscript-output scripts",
-    "figure_3_post_core_guardrails_in_the_petal_dataset.pdf",
+    "figure_3a_post_screening_descriptive_checks_petal.pdf",
     "four Step 8 manuscript artifacts",
     "It does not call a Step 7 script.",
 ):
@@ -1306,7 +1309,7 @@ for anchor in (
 step9_test = (root / "tests" / "run_step9_export_tests.m").read_text(encoding="utf-8")
 step9_test = re.sub(r"'\s*\.\.\.\s*\n\s*'", "", step9_test)
 for artifact in (
-    "figure_3_post_core_guardrails_in_the_petal_dataset.pdf",
+    "figure_3a_post_screening_descriptive_checks_petal.pdf",
     "supplementary_table_1_petal_dataset_characteristics.csv",
     "supplementary_table_4_nrf_template_derivation_and_fitting_details.csv",
     "supplementary_figure_1_nrf_template_visualisations.pdf",
@@ -1492,7 +1495,7 @@ check_readme() {
         '`step_8_gen_1_check_plots.m`' \
         '`step_8_gen_2_sample_details.m`' \
         '`step_8_gen_3_nrf_details.m`' \
-        '`figure_3_post_core_guardrails_in_the_petal_dataset.pdf`' \
+        '`figure_3a_post_screening_descriptive_checks_petal.pdf`' \
         '`supplementary_table_1_petal_dataset_characteristics.csv`' \
         '`supplementary_table_4_nrf_template_derivation_and_fitting_details.csv`' \
         '`supplementary_figure_1_nrf_template_visualisations.pdf`' \

@@ -224,7 +224,7 @@ or tables for inspection. They are `step_8_gen_1_check_plots.m`,
 
 | Script | Responsibility | Inputs | Outputs | Expected current Petal result |
 |---|---|---|---|---|
-| 8.1 | Assemble the fixed post-core guardrail checks for Figure 3 | screened pooled epochs, the saved Step 7.6/7.7 separation results and the configured early/later noxious 500-Hz NRF templates | `figure_3_post_core_guardrails_in_the_petal_dataset.pdf` | four rows by two columns: time series, time-frequency, PSD, QC separation and NRF separation panels |
+| 8.1 | Assemble the fixed post-screening descriptive checks for Figure 3a | screened pooled epochs, the saved Step 7.6/7.7 separation results and the configured early/later noxious 500-Hz NRF templates | `figure_3a_post_screening_descriptive_checks_petal.pdf` | four rows by two columns: time series, time-frequency, PSD, QC separation and NRF separation panels |
 | 8.2 | Create Petal participant characteristics | `dataset_list.csv` and `medscinet_export_petal.xlsx` | `supplementary_table_1_petal_dataset_characteristics.csv` | 15 rows x 2 columns; Supplementary Table 1 |
 | 8.3 | Summarise and visualise the three NRF templates | the three configured 500-Hz NRF templates | `supplementary_table_4_nrf_template_derivation_and_fitting_details.csv` and `supplementary_figure_1_nrf_template_visualisations.pdf` | 9 rows x 4 columns and a three-panel vector PDF; Supplementary Table 4 and Supplementary Figure 1 |
 

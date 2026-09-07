@@ -1,5 +1,5 @@
 function result = run_step8_check_plot_tests(repoRoot)
-%RUN_STEP8_CHECK_PLOT_TESTS Exercise the fixed Step 8.1 guardrail figure.
+%RUN_STEP8_CHECK_PLOT_TESTS Exercise the Step 8.1 descriptive-check figure.
 %   Every fixture is temporary and synthetic. No numbered production script
 %   is run against repository data and no repository data, result or log is
 %   read or changed.
@@ -1066,8 +1066,8 @@ assert(isequaln(firstPanelData, secondPanelData), ...
     'A successful rerun did not reproduce identical numerical panel data.');
 logText = string(fileread(fixture.log));
 assert(~contains(logText, 'obsolete log sentinel'));
-assert(count(logText, ...
-    'Completed Step 8.1 guardrail figure preparation; committing PDF:') == 1);
+assert(count(logText, ['Completed Step 8.1 post-screening ', ...
+    'descriptive-check figure preparation; committing PDF:']) == 1);
 clear bootci
 remove_path_if_present(bootciRoot);
 passed = 1;
@@ -1142,11 +1142,13 @@ actualLabelStrings = [string(labelHandles.part_a.String); ...
     string(labelHandles.reference.String); string(labelHandles.true.String); ...
     string(labelHandles.part_b.String); string(labelHandles.qc.String); ...
     string(labelHandles.nrf.String)];
-expectedLabelStrings = ["A. Time and frequency domain checks"; ...
+expectedLabelStrings = ["Time and frequency domain checks"; ...
     "Internal reference"; "True event"; ...
-    "B. Feature separation checks"; "QC feature"; ...
+    "Feature separation checks"; "QC feature"; ...
     "Later noxious NRF magnitude"];
 assert(isequal(actualLabelStrings, expectedLabelStrings));
+assert(strcmp(labelHandles.part_a.HorizontalAlignment, 'center'));
+assert(strcmp(labelHandles.part_b.HorizontalAlignment, 'center'));
 
 assert(numel(panelHandles.time_series_reference.overlays) == 2);
 assert(numel(panelHandles.time_series_true.overlays) == 2);
@@ -1187,8 +1189,8 @@ assert_numeric_close(panelHandles.nrf_separation.interval.YData(:), ...
     'NRF plotted confidence interval');
 
 logText = string(fileread(fixture.log));
-assert(contains(logText, ...
-    'Completed Step 8.1 guardrail figure preparation; committing PDF:'));
+assert(contains(logText, ['Completed Step 8.1 post-screening ', ...
+    'descriptive-check figure preparation; committing PDF:']));
 assert(~contains(lower(logText), 'step 8.1 failed'));
 end
 
@@ -1438,12 +1440,12 @@ sourcePaths = separation_source_paths(root);
     write_separation_fixture(root, 'qc', sourcePaths);
 [fixture.nrf_mat, fixture.nrf_expected, fixture.nrf_result] = ...
     write_separation_fixture(root, 'nrf', sourcePaths);
-fixture.pdf_name = 'figure_3_post_core_guardrails_in_the_petal_dataset.pdf';
+fixture.pdf_name = 'figure_3a_post_screening_descriptive_checks_petal.pdf';
 fixture.final_pdf = fullfile(fixture.results, fixture.pdf_name);
 fixture.partial_pdf = fullfile(fixture.results, ...
-    'figure_3_post_core_guardrails_in_the_petal_dataset.partial.pdf');
+    'figure_3a_post_screening_descriptive_checks_petal.partial.pdf');
 fixture.rollback_pdf = fullfile(fixture.results, ...
-    'figure_3_post_core_guardrails_in_the_petal_dataset.rollback.pdf');
+    'figure_3a_post_screening_descriptive_checks_petal.rollback.pdf');
 fixture.log = fullfile(fixture.logs, 'step_8_gen_1_check_plots.log');
 
 % Most cases need to prove that Step 8.1 creates and, on rejection, removes
