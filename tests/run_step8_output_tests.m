@@ -47,7 +47,7 @@ logPath = assert_exact_log_inventory(root, ...
     'step_8_gen_2_sample_details.m');
 assert_log_contains(logPath, [ ...
     "Identity route: mapped (4 admitted participants).", ...
-    "Saved Supplementary Table 1:"]);
+    "Saved Supplementary Table 3:"]);
 
 participantDetailsTable = evalin('base', 'participantDetailsTable');
 supplementaryTable1 = evalin('base', 'supplementaryTable1');
@@ -135,12 +135,12 @@ run_fixture_script(fullfile(root, 'scripts', ...
 
 logPath = assert_exact_log_inventory(root, ...
     'step_8_gen_2_sample_details.m');
-assert_log_contains(logPath, "Saved Supplementary Table 1:");
+assert_log_contains(logPath, "Saved Supplementary Table 3:");
 resultsRoot = fullfile(root, 'data', 'results');
 outputPath = fullfile(resultsRoot, ...
     'supplementary_table_1_petal_dataset_characteristics.csv');
 assert(isfile(outputPath), ...
-    'Step 8.2 did not create the Supplementary Table 1 CSV.');
+    'Step 8.2 did not create the Supplementary Table 3 CSV.');
 assert_excel_utf8_csv(outputPath);
 assert(isequal(sorted_file_names(resultsRoot, '*'), ...
     {'supplementary_table_1_petal_dataset_characteristics.csv'}));
@@ -216,7 +216,7 @@ assert(isequal(string(supplementaryTable1.Value), expectedValues));
 
 savedTable = read_text_table(outputPath);
 assert(isequal(savedTable, supplementaryTable1), ...
-    'The saved Supplementary Table 1 CSV differs from the workspace table.');
+    'The saved Supplementary Table 3 CSV differs from the workspace table.');
 
 write_text(outputPath, 'obsolete fixture output');
 write_text(logPath, 'obsolete fixture log');
@@ -226,7 +226,7 @@ replacementTable = read_text_table(outputPath);
 assert_excel_utf8_csv(outputPath);
 assert(isequal(replacementTable, evalin('base', 'supplementaryTable1')), ...
     'Step 8.2 did not replace its existing CSV on a valid rerun.');
-assert_log_contains(logPath, "Saved Supplementary Table 1:");
+assert_log_contains(logPath, "Saved Supplementary Table 3:");
 assert(~contains(string(fileread(logPath)), "obsolete fixture log"), ...
     'Step 8.2 appended to rather than replaced its existing log.');
 passed = 1;
@@ -259,24 +259,24 @@ end
 
 function passed = run_nrf_details_positive(repoRoot)
 [root, cleanup] = make_nrf_fixture(repoRoot, "positive"); %#ok<ASGLU>
-run_fixture_script(fullfile(root, 'scripts', ...
-    'step_8_gen_3_nrf_details.m'));
+scriptPath = fullfile(root, 'scripts', 'step_8_gen_3_nrf_details.m');
+run_fixture_script(scriptPath);
 
 logPath = assert_exact_log_inventory(root, ...
     'step_8_gen_3_nrf_details.m');
 assert_log_contains(logPath, [ ...
-    "Saved Supplementary Table 4:", ...
-    "Saved Supplementary Figure 1:"]);
+    "Saved Supplementary Table 6:", ...
+    "Saved Supplementary Figure 13:"]);
 resultsRoot = fullfile(root, 'data', 'results');
 tablePath = fullfile(resultsRoot, ...
     'supplementary_table_4_nrf_template_derivation_and_fitting_details.csv');
 figurePath = fullfile(resultsRoot, ...
     'supplementary_figure_1_nrf_template_visualisations.pdf');
 assert(isfile(tablePath), ...
-    'Step 8.3 did not create the Supplementary Table 4 CSV.');
+    'Step 8.3 did not create the Supplementary Table 6 CSV.');
 assert_excel_utf8_csv(tablePath);
 assert(isfile(figurePath), ...
-    'Step 8.3 did not create the Supplementary Figure 1 PDF.');
+    'Step 8.3 did not create the Supplementary Figure 13 PDF.');
 assert(isequal(sorted_file_names(resultsRoot, '*'), { ...
     'supplementary_figure_1_nrf_template_visualisations.pdf', ...
     ['supplementary_table_4_nrf_template_derivation_and_' ...
@@ -342,16 +342,16 @@ assert(isequal(savedTable.Properties.VariableNames, ...
 observedSavedValues = string(savedTable{:,:});
 expectedSavedValues = string(supplementaryTable4{:,:});
 assert(isequal(observedSavedValues, expectedSavedValues), ...
-    'The saved Supplementary Table 4 CSV differs from the workspace table.');
+    'The saved Supplementary Table 6 CSV differs from the workspace table.');
 
 pdfBytes = read_binary(figurePath);
 assert(numel(pdfBytes) > 1000, ...
-    'The Supplementary Figure 1 PDF is unexpectedly small.');
+    'The Supplementary Figure 13 PDF is unexpectedly small.');
 assert(isequal(char(pdfBytes(1:5))', '%PDF-'), ...
-    'The Supplementary Figure 1 output is not a PDF.');
+    'The Supplementary Figure 13 output is not a PDF.');
 pdfText = string(char(pdfBytes(:)'));
 assert(~contains(pdfText, '/Subtype /Image'), ...
-    'The Supplementary Figure 1 PDF contains a raster image object.');
+    'The Supplementary Figure 13 PDF contains a raster image object.');
 
 nrfFigure = evalin('base', 'nrfFigure');
 assert(isgraphics(nrfFigure, 'figure'), ...
@@ -367,12 +367,28 @@ assert(numel(axesHandles) == 3, ...
 assert(all(strcmp(get(axesHandles, 'YDir'), 'reverse')), ...
     'Step 8.3 did not retain the EEG positive-down display convention.');
 
+templateFiles = {'early_NRF_500Hz.mat', 'noxious_NRF_500Hz.mat', ...
+    'noxious_preterm_NRF_500Hz.mat'};
+displayNames = {'Early', 'Noxious', 'Noxious preterm'};
+startMs = [100 400 0];
+for i = 1:numel(templateFiles)
+    stored = load(fullfile(root, 'NRFs', templateFiles{i}), 'NRF', 'fs');
+    curve = findobj(nrfFigure, 'Type', 'line', 'DisplayName', displayNames{i});
+    assert(isscalar(curve), 'Expected one plotted curve for %s.', displayNames{i});
+    y = curve.YData(:);
+    x = curve.XData(:);
+    onCurve = ~isnan(y);
+    expectedTimeMs = startMs(i) + (0:numel(stored.NRF)-1)' * (1000 / stored.fs);
+    assert(isequal(x(onCurve), expectedTimeMs) && ...
+        isequal(y(onCurve), stored.NRF), ...
+        'Plotted samples or projection times differ for %s.', displayNames{i});
+end
+
 close(nrfFigure);
 write_text(tablePath, 'obsolete fixture table');
 write_text(figurePath, 'obsolete fixture figure');
 write_text(logPath, 'obsolete fixture log');
-run_fixture_script(fullfile(root, 'scripts', ...
-    'step_8_gen_3_nrf_details.m'));
+run_fixture_script(scriptPath);
 replacementTable = read_text_table(tablePath);
 assert_excel_utf8_csv(tablePath);
 assert(isequal(string(replacementTable{:,:}), ...
@@ -383,8 +399,8 @@ assert(numel(replacementPdf) > 1000 && ...
     isequal(char(replacementPdf(1:5))', '%PDF-'), ...
     'Step 8.3 did not replace its existing PDF on a valid rerun.');
 assert_log_contains(logPath, [ ...
-    "Saved Supplementary Table 4:", ...
-    "Saved Supplementary Figure 1:"]);
+    "Saved Supplementary Table 6:", ...
+    "Saved Supplementary Figure 13:"]);
 assert(~contains(string(fileread(logPath)), "obsolete fixture log"), ...
     'Step 8.3 appended to rather than replaced its existing log.');
 passed = 1;
@@ -575,12 +591,14 @@ copyfile(fullfile(repoRoot, 'functions', 'NRFUtils.m'), ...
     fullfile(functionsRoot, 'NRFUtils.m'));
 
 fs = 500;
-NRF = [0; 1; 0]; %#ok<NASGU>
+% This offset and scale expose any transformation of the plotted samples.
+% The largest deflection from the first sample is positive at sample two.
+NRF = [-4; 2; 1];
 save(fullfile(templatesRoot, 'early_NRF_500Hz.mat'), 'NRF', 'fs');
-NRF = [0; -2; 0; 0]; %#ok<NASGU>
+NRF = [1; -3; 1; 1] / sqrt(12);
 save(fullfile(templatesRoot, 'noxious_NRF_500Hz.mat'), 'NRF', 'fs');
 if mode ~= "missing_template"
-    NRF = [0; 0; 3; 0; 0]; %#ok<NASGU>
+    NRF = [-1; -1; 4; -1; -1] / sqrt(20);
     save(fullfile(templatesRoot, ...
         'noxious_preterm_NRF_500Hz.mat'), 'NRF', 'fs');
 end

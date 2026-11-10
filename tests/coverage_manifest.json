@@ -8,9 +8,9 @@
     "relative_tolerance": 0
   },
   "expected_runtime_totals": {
-    "runner_sha256": "4e29115ab9183b3e80a9cd0e99a2b8d2d41faa4ea081008aed794bcf41dc7058",
+    "runner_sha256": "5559e20a474e572e28bca9bf76e5b3519fec25b82694701f54c15ca1ca3e7197",
     "preproc": 30,
-    "response": 17,
+    "response": 11,
     "jitter": 11,
     "qc": 284,
     "clean_contract": 18,
@@ -71,20 +71,14 @@
       "source": "tests/fixtures/simple_scientific_oracle_v1.mat",
       "runner": "tests/run_all_tests.m",
       "runner_anchor": "run_response_oracles",
-      "expected_pass_count": 17,
+      "expected_pass_count": 11,
       "cases": [
         "early_NRF_500Hz_post",
         "early_NRF_500Hz_pre",
-        "early_NRF_2000Hz_post",
-        "early_NRF_2000Hz_pre",
         "noxious_NRF_500Hz_post",
         "noxious_NRF_500Hz_pre",
-        "noxious_NRF_2000Hz_post",
-        "noxious_NRF_2000Hz_pre",
         "noxious_preterm_NRF_500Hz_post",
         "noxious_preterm_NRF_500Hz_pre",
-        "noxious_preterm_NRF_2000Hz_post",
-        "noxious_preterm_NRF_2000Hz_pre",
         "insufficient_epochs",
         "no_negative_baseline",
         "template_rate_mismatch",
@@ -1289,25 +1283,19 @@
     },
     {
       "id": "BASE-RSP-005",
-      "requirement_key": "templates_six_rates",
+      "requirement_key": "templates_three_500hz",
       "surface": "estimate_response.templates",
-      "requirement": "All six bundled templates at 500 and 2000 Hz on pre and post routes.",
+      "requirement": "All three bundled mean-zero, unit-discrete-L2 templates at 500 Hz on pre and post routes.",
       "test_refs": [
         {
           "test_id": "matlab.response.oracle",
           "cases": [
             "early_NRF_500Hz_post",
             "early_NRF_500Hz_pre",
-            "early_NRF_2000Hz_post",
-            "early_NRF_2000Hz_pre",
             "noxious_NRF_500Hz_post",
             "noxious_NRF_500Hz_pre",
-            "noxious_NRF_2000Hz_post",
-            "noxious_NRF_2000Hz_pre",
             "noxious_preterm_NRF_500Hz_post",
-            "noxious_preterm_NRF_500Hz_pre",
-            "noxious_preterm_NRF_2000Hz_post",
-            "noxious_preterm_NRF_2000Hz_pre"
+            "noxious_preterm_NRF_500Hz_pre"
           ]
         }
       ],
@@ -1540,11 +1528,8 @@
           "test_id": "matlab.response.oracle",
           "cases": [
             "early_NRF_500Hz_post",
-            "early_NRF_2000Hz_post",
             "noxious_NRF_500Hz_post",
-            "noxious_NRF_2000Hz_post",
-            "noxious_preterm_NRF_500Hz_post",
-            "noxious_preterm_NRF_2000Hz_post"
+            "noxious_preterm_NRF_500Hz_post"
           ]
         }
       ],
@@ -1926,7 +1911,7 @@
       "id": "BASE-CLS-002",
       "requirement_key": "closure_templates",
       "surface": "repository.NRFs",
-      "requirement": "Exact six template names and byte digests.",
+      "requirement": "Exact three 500-Hz template names and byte digests.",
       "test_refs": [
         {
           "test_id": "static.repository.template_inventory"

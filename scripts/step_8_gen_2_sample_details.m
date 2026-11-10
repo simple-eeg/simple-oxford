@@ -1,7 +1,7 @@
 %% step_8_gen_2_sample_details.m
 %
 % Create the participant-level source table and save/display:
-%   Supplementary Table 1. Petal dataset characteristics.
+%   Supplementary Table 3. Petal dataset characteristics.
 %
 % After the script finishes, these two tables remain in the MATLAB
 % workspace:
@@ -228,7 +228,7 @@ if height(participantDetailsTable) == 0 || ...
         any(participantDetailsTable.trial_arm == "") || ...
         any(participantDetailsTable.HL_sleep_state == "")
     error('SimpleOxford:SampleDetails:IncompleteData', ...
-        ['Supplementary Table 1 requires complete participant-level ' ...
+        ['Supplementary Table 3 requires complete participant-level ' ...
         'values for every displayed characteristic.']);
 end
 
@@ -291,7 +291,7 @@ Value = [ ...
 
 supplementaryTable1 = table(Characteristic, Value);
 
-fprintf(['\nSupplementary Table 1. Petal dataset characteristics. ' ...
+fprintf(['\nSupplementary Table 3. Petal dataset characteristics. ' ...
     'Values are median (IQR) or n (%%).\n\n']);
 disp(supplementaryTable1);
 fprintf('Identity route: %s (%d admitted participants).\n', ...
@@ -307,7 +307,7 @@ if ~isfolder(resultsDir)
 end
 writetable(supplementaryTable1, tableOutPath, 'Encoding', 'UTF-8');
 local_add_utf8_bom(tableOutPath);
-fprintf('Saved Supplementary Table 1: %s\n', tableOutPath);
+fprintf('Saved Supplementary Table 3: %s\n', tableOutPath);
 
 % Keep the documented manuscript tables while dropping private source-ID
 % working variables from the successful base workspace.

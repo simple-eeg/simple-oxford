@@ -98,20 +98,20 @@ again for epoching and baseline correction.
 
 ## NRF templates and configuration
 
-`NRFs/` contains six tracked templates:
+`NRFs/` contains three tracked templates at 500 Hz:
 
 ```text
 early_NRF_500Hz.mat
-early_NRF_2000Hz.mat
 noxious_NRF_500Hz.mat
-noxious_NRF_2000Hz.mat
 noxious_preterm_NRF_500Hz.mat
-noxious_preterm_NRF_2000Hz.mat
 ```
 
-Every template MAT file contains `NRF` and `fs`. The template sampling rate
-must exactly equal the EEG sampling rate; the estimator does not resample
-templates.
+Each MAT file stores a real double column vector `NRF` and scalar `fs = 500`.
+Each stored NRF has mean zero and discrete L2 norm one within floating-point
+precision. The dimensionless template gives its signed fitted coefficient
+the EEG input's unit; that coefficient is not a peak EEG amplitude. The
+template and EEG sampling rates must match exactly; the estimator does not
+resample templates.
 
 `NRFs/nrf_config.ini` defines the profiles used by Step 4 NRF feature
 extraction. Each profile has exactly six settings: `NRFName`,
@@ -225,8 +225,8 @@ or tables for inspection. They are `step_8_gen_1_check_plots.m`,
 | Script | Responsibility | Inputs | Outputs | Expected current Petal result |
 |---|---|---|---|---|
 | 8.1 | Assemble the fixed post-screening descriptive checks for Figure 3a | screened pooled epochs, the saved Step 7.6/7.7 separation results and the configured early/later noxious 500-Hz NRF templates | `figure_3a_post_screening_descriptive_checks_petal.pdf` | four rows by two columns: time series, time-frequency, PSD, QC separation and NRF separation panels |
-| 8.2 | Create Petal participant characteristics | `dataset_list.csv` and `medscinet_export_petal.xlsx` | `supplementary_table_1_petal_dataset_characteristics.csv` | 15 rows x 2 columns; Supplementary Table 1 |
-| 8.3 | Summarise and visualise the three NRF templates | the three configured 500-Hz NRF templates | `supplementary_table_4_nrf_template_derivation_and_fitting_details.csv` and `supplementary_figure_1_nrf_template_visualisations.pdf` | 9 rows x 4 columns and a three-panel vector PDF; Supplementary Table 4 and Supplementary Figure 1 |
+| 8.2 | Create Petal participant characteristics | `dataset_list.csv` and `medscinet_export_petal.xlsx` | `supplementary_table_1_petal_dataset_characteristics.csv` | 15 rows x 2 columns; Supplementary Table 3 |
+| 8.3 | Summarise and visualise the three NRF templates | the three configured 500-Hz NRF templates | `supplementary_table_4_nrf_template_derivation_and_fitting_details.csv` and `supplementary_figure_1_nrf_template_visualisations.pdf` | 9 rows x 4 columns and a three-panel vector PDF; Supplementary Table 6 and Supplementary Figure 13 |
 
 Run Steps 8.1, 8.2 and 8.3 in numeric order and stop if any script reports an
 error. Each script starts a fresh exact-name Command Window log before clearing the
@@ -243,14 +243,15 @@ Step 8.2 leaves `participantDetailsTable` and `supplementaryTable1` in the
 workspace. In the optional mapped route it uses the private registry only to
 translate the MedSciNet source identity to replacement `subjectID`; the saved
 aggregate table contains no identifier and is scientifically unchanged. Step
-8.3 leaves `supplementaryTable4` and its figure open for inspection.
+8.3 plots the stored NRF samples at their configured start times and leaves
+`supplementaryTable4` and its figure open for inspection.
 
 Both Step 8 tables are written as UTF-8 CSV files with a byte-order mark so
 their en dashes and plus/minus symbols display correctly when the files are
 opened directly in Microsoft Excel. Their presentation contracts are:
 
-- Supplementary Table 1: en-dash subgroup labels rather than leading ASCII hyphen-minus;
-- Supplementary Table 4: plain author-year Publication values without parentheses or asterisks.
+- Supplementary Table 3: en-dash subgroup labels rather than leading ASCII hyphen-minus;
+- Supplementary Table 6: plain author-year Publication values without parentheses or asterisks.
 
 ### Step 9 — Oxford JASP table preparation
 
@@ -333,7 +334,7 @@ test establishes technical behaviour; it does not replace those decisions.
 ## Tests
 
 `tests/run_all_tests.m` uses synthetic EEG fixtures only. It exercises the
-preprocessing, response, jitter and QC contracts, all six bundled templates,
+preprocessing, response, jitter and QC contracts, all three bundled templates,
 path precedence, local template binding, registry paths, effective processing
 state, the optional Step 2 identity and `.set`-sanitisation transactions, NRF
 state replacement, all three Step 8 manuscript-output scripts, the

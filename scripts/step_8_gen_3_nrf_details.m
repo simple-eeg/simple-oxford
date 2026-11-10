@@ -1,7 +1,7 @@
 %% step_8_gen_3_nrf_details.m
 % Create and save:
-%   Supplementary Table 4. NRF template-derivation and fitting details.
-%   Supplementary Figure 1. NRF template visualisations.
+%   Supplementary Table 6. NRF template-derivation and fitting details.
+%   Supplementary Figure 13. NRF template visualisations.
 %
 % This script:
 % - loads three existing NRF .mat files,
@@ -13,12 +13,11 @@
 %   data/results.
 %
 % Assumptions for each .mat file:
-% - contains variable 'NRF' (numeric vector)
+% - contains variable 'NRF' (a non-empty, finite, real numeric vector)
 % - contains variable 'fs'  (numeric scalar sampling rate)
 %
 % Notes:
-% - L2 normalisation is used to make each NRF unitless for visual comparison.
-% - User-defined display scaling is applied after L2 normalisation.
+% - Each curve shows the stored NRF samples at their projection times.
 % - Optional smoothing affects only peak-latency estimation.
 % - Plotting uses EEG convention with positive values down.
 
@@ -65,7 +64,7 @@ pretermNRFName  = 'noxious_preterm_NRF_500Hz';
 nrfDisplayNames = {'Early', 'Noxious', 'Noxious preterm'};
 
 % =========================================================================
-% B. Projection, jitter and display-scaling settings
+% B. Projection and jitter settings
 % =========================================================================
 earlyStartMs    = 100;
 noxiousStartMs  = 400;
@@ -74,10 +73,6 @@ pretermStartMs  = 0;
 earlyJitterMs   = 100;
 noxiousJitterMs = 100;
 pretermJitterMs = 100;
-
-earlyScale      = 1;
-noxiousScale    = 1;
-pretermScale    = 1;
 
 % =========================================================================
 % C. Epoch-support and axis settings
@@ -145,7 +140,6 @@ end
 
 startMs   = [earlyStartMs, noxiousStartMs, pretermStartMs];
 jitterMs  = [earlyJitterMs, noxiousJitterMs, pretermJitterMs];
-scales    = [earlyScale, noxiousScale, pretermScale];
 colors    = {earlyColor, noxiousColor, pretermColor};
 
 metaN = [earlyN, noxiousN, pretermN];
@@ -159,10 +153,6 @@ metaPublication = {earlyPublication, noxiousPublication, pretermPublication};
 % -------------------------------------------------------------------------
 nNRF = numel(logicalNRFNames);
 
-rawNRFs          = cell(1, nNRF);
-loadedFs         = nan(1, nNRF);
-normNRFs         = cell(1, nNRF);
-scaledNRFs       = cell(1, nNRF);
 projectedNRFs    = cell(1, nNRF);
 
 durationsMs      = nan(1, nNRF);
@@ -193,29 +183,17 @@ for i = 1:nNRF
         error('Unexpected fs in file %s. Expected %g, found %g.', ...
             thisPath, fsExpected, S.fs);
     end
-    if ~(isnumeric(S.NRF) && isvector(S.NRF) && ~isempty(S.NRF) && ...
-            all(isfinite(S.NRF)))
-        error(['Variable ''NRF'' must be a non-empty finite numeric ' ...
+    if ~(isnumeric(S.NRF) && isreal(S.NRF) && isvector(S.NRF) && ...
+            ~isempty(S.NRF) && all(isfinite(S.NRF)))
+        error(['Variable ''NRF'' must be a non-empty finite real numeric ' ...
             'vector in file: %s'], thisPath);
     end
 
     thisNRF = S.NRF(:);
     thisFs = S.fs;
-    rawNRFs{i} = thisNRF;
-    loadedFs(i) = thisFs;
 
     nSamples = numel(thisNRF);
     durationsMs(i) = (nSamples - 1) * 1000 / thisFs;
-
-    thisL2 = norm(thisNRF, 2);
-    if ~(isfinite(thisL2) && thisL2 > 0)
-        error('Invalid L2 norm for NRF in file: %s', thisPath);
-    end
-
-    thisNormNRF = thisNRF / thisL2;
-    thisScaledNRF = thisNormNRF * scales(i);
-    normNRFs{i} = thisNormNRF;
-    scaledNRFs{i} = thisScaledNRF;
 
     withinTimeMs = (0:nSamples-1)' * (1000 / thisFs);
     epochTimeMs = startMs(i) + withinTimeMs;
@@ -224,10 +202,10 @@ for i = 1:nNRF
     roundedEpochTime = round(epochTimeMs, 10);
     roundedSupport = round(supportTimeMs(:), 10);
     [isMember, idxSupport] = ismember(roundedEpochTime, roundedSupport);
-    projectedVec(idxSupport(isMember)) = thisScaledNRF(isMember);
+    projectedVec(idxSupport(isMember)) = thisNRF(isMember);
     projectedNRFs{i} = projectedVec;
 
-    % Peak detection relative to the first sample only.
+    % Table latency and polarity use deflection from the first template sample.
     shiftedNRF = thisNRF - thisNRF(1);
     peakDetectVec = shiftedNRF;
     if usePeakSmoothing
@@ -334,7 +312,7 @@ for i = 1:nNRF
 end
 
 disp(' ');
-disp(['Supplementary Table 4. NRF template-derivation and ' ...
+disp(['Supplementary Table 6. NRF template-derivation and ' ...
     'fitting details.']);
 disp(supplementaryTable4);
 
@@ -354,8 +332,8 @@ local_add_utf8_bom(tableOutPath);
 drawnow;
 exportgraphics(nrfFigure, figureOutPath, 'ContentType', 'vector');
 
-fprintf('Saved Supplementary Table 4: %s\n', tableOutPath);
-fprintf('Saved Supplementary Figure 1: %s\n', figureOutPath);
+fprintf('Saved Supplementary Table 6: %s\n', tableOutPath);
+fprintf('Saved Supplementary Figure 13: %s\n', figureOutPath);
 
 log_command_window('stop');
 
