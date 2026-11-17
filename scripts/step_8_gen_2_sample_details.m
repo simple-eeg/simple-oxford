@@ -1,12 +1,12 @@
 %% step_8_gen_2_sample_details.m
 %
-% Create the participant-level source table and save/display:
-%   Supplementary Table 3. Petal dataset characteristics.
+% Create the participant-level source values and save/display the source table
+% used to prepare Supplementary Table 3 (Petal dataset characteristics).
 %
 % After the script finishes, these two tables remain in the MATLAB
 % workspace:
 %   - participantDetailsTable: the participant-level source values
-%   - supplementaryTable1: the formatted manuscript table
+%   - supplementaryTable1: the source table for the manuscript
 %
 % Inputs:
 %   1) data_lists/dataset_list.csv

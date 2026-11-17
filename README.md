@@ -6,6 +6,8 @@ workflow, and analysis-specific export. The repository supports multiple Oxford
 datasets; the Petal trial is the instantiation used in the SIMPLE methods paper,
 not the limit of the codebase.
 
+**Software credits:** [Marianne van der Vaart](https://github.com/mvandervaart), [Simon Marchant](https://github.com/simonmarchant), and [Luke Baxter](https://github.com/lukebax) contributed equally to the development of this software.
+
 Associated methods paper: citation and link to be added when available.
 
 Petal dataset paper: Hauck et al. (2024), *Effect of parental touch on relieving
@@ -60,13 +62,14 @@ Scripts that call repository functions start EEGLAB, prepend this checkout's
 resolve there. Do not add `NRFs/` to the MATLAB path; logical template names
 are resolved directly against this repository.
 
-Every registry path is validated before a governed write. Dataset directories
-must be project-relative descendants of the exact `data/raw`,
-`data/processed` or `data/summary` root for their stage; dataset filenames must
-be basenames with the exact lowercase `.set` extension; and processed and all
-four per-dataset summary output targets must be unique. Absolute, traversing,
-separator-ambiguous or path-like targets and symlink-based canonical escapes stop the script
-before any registry, processed-dataset or summary-output write begins.
+Every registry path is validated before a governed write to processed datasets
+or per-dataset summaries. Dataset directories must be project-relative
+descendants of the exact `data/raw`, `data/processed`, or `data/summary` root
+for their stage; dataset filenames must be basenames with the exact lowercase
+`.set` extension; and processed and all four per-dataset summary output targets
+must be unique. Absolute, traversing, separator-ambiguous, or path-like targets
+and symlink-based canonical escapes stop the relevant step before it writes
+registry, processed-dataset, or per-dataset summary outputs.
 
 Most scripts contain an editable Oxford root variable such as `baseDir`,
 `root`, `local_base` or `PROJECT_ROOT`. Set that declaration to the location of
@@ -190,7 +193,9 @@ filters, marking latency corrections and reviewing channel inventories.
 
 ### Steps 3–7 — SIMPLE framework
 
-The middle block implements the five stages documented in `simple`:
+The middle block implements the five software stages documented in `simple`.
+These group operations differently from the five scientific steps in the
+methods paper.
 
 | Oxford step | Framework step | Stage |
 |---|---|---|
@@ -201,15 +206,19 @@ The middle block implements the five stages documented in `simple`:
 | Step 7 | Step 5 | post-screening checks (`check`) |
 
 These scripts run from this repository. See the `simple` README for
-detailed stage inputs, outputs, rationale, manual checkpoints and operating
+detailed stage inputs, outputs, rationale, manual checkpoints, and operating
 rules.
 
 Step 3 preprocesses continuous recordings, removes unwanted events, adds
 configured offset or internal-reference events, and performs epoching and
 baseline correction. Step 4 calculates per-event/channel QC features and NRF
 fits. Step 5 creates individual and pooled summaries. Step 6 creates the fixed
-screening package, records manual decisions and applies them to pooled outputs.
-Step 7 provides display and machine-readable checks of the screened results.
+screening package, records manual decisions, and applies them to pooled outputs.
+Review each item using its waveform and QC evidence; keep NRF magnitudes and
+downstream group or outcome information out of screening decisions. True-event
+and internal-reference items receive separate statuses. Step 7 provides
+descriptive displays and machine-readable checks of the screened results
+without changing screening decisions.
 
 The Step 6.2 viewer offers `File > Save PDF...` to save the complete current
 display, including all plots and the Navigator, to a PDF location chosen by
@@ -217,18 +226,18 @@ the user. Exporting this snapshot does not change the screening decisions.
 
 ### Step 8 — General manuscript outputs
 
-The three Step 8 scripts create manuscript-ready figures and tables under
-`data/results/` while retaining the corresponding MATLAB figures, panel data
-or tables for inspection. They are `step_8_gen_1_check_plots.m`,
-`step_8_gen_2_sample_details.m` and `step_8_gen_3_nrf_details.m`.
+The three Step 8 scripts create figures and source tables for the manuscript
+under `data/results/` while retaining the corresponding MATLAB figures, panel
+data, or tables for inspection. They are `step_8_gen_1_check_plots.m`,
+`step_8_gen_2_sample_details.m`, and `step_8_gen_3_nrf_details.m`.
 
 | Script | Responsibility | Inputs | Outputs | Expected current Petal result |
 |---|---|---|---|---|
 | 8.1 | Assemble the fixed post-screening descriptive checks for Figure 3a | screened pooled epochs, the saved Step 7.7 NRF separation result, and the configured e-NRF/n-NRF 500-Hz templates | `figure_3a_post_screening_descriptive_checks_petal.pdf` | seven panels: true-event and internal-reference time series, time-frequency, and PSD plots, followed by one centred n-NRF separation plot |
-| 8.2 | Create Petal participant characteristics | `dataset_list.csv` and `medscinet_export_petal.xlsx` | `supplementary_table_1_petal_dataset_characteristics.csv` | 15 rows x 2 columns; Supplementary Table 3 |
-| 8.3 | Summarise and visualise the three NRF templates | the three configured 500-Hz NRF templates | `supplementary_table_4_nrf_template_derivation_and_fitting_details.csv` and `supplementary_figure_1_nrf_template_visualisations.pdf` | 9 rows x 4 columns and a three-panel vector PDF; Supplementary Table 6 and Supplementary Figure 13 |
+| 8.2 | Create Petal participant characteristics | `dataset_list.csv` and `medscinet_export_petal.xlsx` | `supplementary_table_1_petal_dataset_characteristics.csv` | 15 rows x 2 columns; source for Supplementary Table 3 |
+| 8.3 | Summarise and visualise the three NRF templates | the three configured 500-Hz NRF templates | `supplementary_table_4_nrf_template_derivation_and_fitting_details.csv` and `supplementary_figure_1_nrf_template_visualisations.pdf` | 9 rows x 4 columns used to prepare Supplementary Table 6, and a three-panel vector PDF for Supplementary Figure 13 |
 
-Run Steps 8.1, 8.2 and 8.3 in numeric order and stop if any script reports an
+Run Steps 8.1, 8.2, and 8.3 in numeric order and stop if any script reports an
 error. Each script starts a fresh exact-name Command Window log before clearing the
 Command Window, then validates its required inputs before creating the results
 directory or writing its own scientific targets. A rejected run may therefore
@@ -247,14 +256,18 @@ workspace. In the optional mapped route it uses the private registry only to
 translate the MedSciNet source identity to replacement `subjectID`; the saved
 aggregate table contains no identifier and is scientifically unchanged. Step
 8.3 plots the stored NRF samples at their configured start times and leaves
-`supplementaryTable4` and its figure open for inspection.
+`supplementaryTable4` and its figure open for inspection. The manuscript tables
+use selected values from these source tables with edited labels and formatting.
+In particular, Supplementary Table 6 presents six rows with e-NRF, n-NRF, and
+p-NRF headings; the nine-row source CSV retains its derivation metadata and
+historical filename.
 
 Both Step 8 tables are written as UTF-8 CSV files with a byte-order mark so
 their en dashes and plus/minus symbols display correctly when the files are
 opened directly in Microsoft Excel. Their presentation contracts are:
 
-- Supplementary Table 3: en-dash subgroup labels rather than leading ASCII hyphen-minus;
-- Supplementary Table 6: plain author-year Publication values without parentheses or asterisks.
+- Source table for Supplementary Table 3: en-dash subgroup labels rather than leading ASCII hyphen-minus;
+- Source table for Supplementary Table 6: plain author-year Publication values without parentheses or asterisks.
 
 ### Step 9 — Oxford JASP table preparation
 
@@ -341,7 +354,7 @@ preprocessing, response, jitter and QC contracts, all three bundled templates,
 path precedence, local template binding, registry paths, effective processing
 state, the optional Step 2 identity and `.set`-sanitisation transactions, NRF
 state replacement, all three Step 8 manuscript-output scripts, the
-complete pain-only Step 9 six-script CSV chain
+complete heel-lance Step 9 six-script CSV chain,
 and the public APIs in the verified MATLAB/EEGLAB environment. The Step 8 and
 Step 9 tests run temporary
 copies of the relevant scripts against synthetic fixtures. They verify the
@@ -352,7 +365,8 @@ Run it in a dedicated MATLAB session because the temporary script-interface
 fixtures intentionally use ordinary script/base-workspace semantics and clear
 that base workspace.
 
-From MATLAB, call the runner with explicit roots:
+In MATLAB, set `oxfordRoot` to this checkout and `eeglabRoot` to your
+EEGLAB installation, then call the runner:
 
 ```matlab
 addpath(fullfile(oxfordRoot, 'tests'), '-begin');

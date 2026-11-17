@@ -1,13 +1,13 @@
 %% step_8_gen_3_nrf_details.m
 % Create and save:
-%   Supplementary Table 6. NRF template-derivation and fitting details.
+%   Source table used to prepare Supplementary Table 6.
 %   Supplementary Figure 13. NRF template visualisations.
 %
 % This script:
 % - loads three existing NRF .mat files,
 % - verifies their expected contents,
-% - plots each NRF in its own subplot on a common fake EEG epoch axis,
-% - creates a manuscript-shaped MATLAB summary table,
+% - plots each NRF in its own subplot on a common event-relative time axis,
+% - creates an NRF source table used to prepare Supplementary Table 6,
 % - saves the table as UTF-8 CSV with a byte-order mark for reliable direct
 %   opening in Microsoft Excel, and saves the figure as a vector PDF under
 %   data/results.
@@ -17,6 +17,8 @@
 % - contains variable 'fs'  (numeric scalar sampling rate)
 %
 % Notes:
+% - Supplementary Table 6 uses selected values from the source table with edited
+%   labels and formatting; the source retains its derivation metadata.
 % - Each curve shows the stored NRF samples at their projection times.
 % - Optional smoothing affects only peak-latency estimation.
 % - Plotting uses EEG convention with positive values down.
@@ -237,7 +239,7 @@ for i = 1:nNRF
 end
 
 %% ------------------------------------------------------------------------
-% BUILD THE MANUSCRIPT-SHAPED SUMMARY TABLE
+% BUILD THE NRF SOURCE TABLE FOR SUPPLEMENTARY TABLE 6
 % -------------------------------------------------------------------------
 Detail = [ ...
     "Publication"; ...
