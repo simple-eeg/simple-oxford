@@ -1106,7 +1106,7 @@ for name in expected[1:]:
 
 source_hashes = {
     "scripts/step_8_gen_1_check_plots.m":
-        "ec64c9c7e0394738f767e8a7b95b40a792e371194c29fa79b98331840f1b1166",
+        "e8108d8333e08b0917c2ac03bdf2fb374f7d6ca862f5defe60715e73e06bb399",
     "functions/collect_guardrail_event_series.m":
         "09fd57796d147f88c008d6a0add4c37ad658ec61f40cff549c349c9541555dc5",
     "functions/plot_guardrail_average_ts.m":
@@ -1157,7 +1157,6 @@ step81_anchors = [
     "'figure_3a_post_screening_descriptive_checks_petal.pdf'",
     "'step_8_gen_1_check_plots.log'",
     "'pooled_screened_eeg_epochs.mat'",
-    "'step_7_check_6_sep_check_qc_result.mat'",
     "'step_7_check_7_sep_check_nrf_result.mat'",
     "'ordered', [\"lance_prestim\", \"lance\"]",
     "figure3Config.use_exclusion_flags = true;",
@@ -1174,11 +1173,17 @@ step81_anchors = [
     "'part_a', 'Time and frequency domain checks'",
     "'reference', 'Internal reference'",
     "'true', 'True event'",
-    "'part_b', 'Feature separation checks'",
+    "'part_b', 'NRF magnitude separation check'",
     "'figure3-label-part-a', 'center'",
     "'figure3-label-part-b', 'center'",
-    "'qc', 'QC feature'",
-    "'nrf', 'Later noxious NRF magnitude'",
+    "dataAxes = gobjects(7, 1);",
+    "ylim(dataAxes(7), [0 150]);", "yticks(dataAxes(7), 0:50:150);",
+    "numel(unique(actualAxesTags)) ~= 7",
+    "numel(unique(labelTags)) ~= 4",
+    "0.56 0.75 0.34 0.15", "0.07 0.75 0.34 0.15",
+    "0.33 0.08 0.34 0.15", "0.04 0.2439 0.92 0.025",
+    "Magnitude (\\muV)", "Median paired difference (\\muV)",
+    "'display_label', 'e-NRF'", "'display_label', 'n-NRF'",
     "figure3Config = struct();", "figure3PanelData = struct();",
     "figure3PanelHandles = struct();", "figure3Figure = figure(",
     "collect_guardrail_event_series(", "plot_guardrail_average_ts(",
@@ -1201,16 +1206,20 @@ expected_axes = [
     "figure3-ts-reference", "figure3-ts-true",
     "figure3-tf-reference", "figure3-tf-true",
     "figure3-psd-reference", "figure3-psd-true",
-    "figure3-qc-separation", "figure3-nrf-separation",
+    "figure3-nrf-separation",
 ]
 expected_labels = [
     "figure3-label-part-a", "figure3-label-reference",
     "figure3-label-true", "figure3-label-part-b",
-    "figure3-label-qc", "figure3-label-nrf",
 ]
 for tag in expected_axes + expected_labels:
     if step81.count(tag) < 2:
         raise AssertionError(f"Step 8.1 tagged inventory lacks checked tag {tag}")
+
+for prohibited in ("qc_result_mat", "qc_expected", "qcSeparation",
+                   "figure3-qc-separation", "figure3-label-qc", "figure3-label-nrf"):
+    if prohibited in step81:
+        raise AssertionError(f"Step 8.1 retains removed QC plot dependency: {prohibited}")
 
 helper_contracts = {
     "collect_guardrail_event_series.m":

@@ -224,7 +224,7 @@ or tables for inspection. They are `step_8_gen_1_check_plots.m`,
 
 | Script | Responsibility | Inputs | Outputs | Expected current Petal result |
 |---|---|---|---|---|
-| 8.1 | Assemble the fixed post-screening descriptive checks for Figure 3a | screened pooled epochs, the saved Step 7.6/7.7 separation results and the configured early/later noxious 500-Hz NRF templates | `figure_3a_post_screening_descriptive_checks_petal.pdf` | four rows by two columns: time series, time-frequency, PSD, QC separation and NRF separation panels |
+| 8.1 | Assemble the fixed post-screening descriptive checks for Figure 3a | screened pooled epochs, the saved Step 7.7 NRF separation result, and the configured e-NRF/n-NRF 500-Hz templates | `figure_3a_post_screening_descriptive_checks_petal.pdf` | seven panels: true-event and internal-reference time series, time-frequency, and PSD plots, followed by one centred n-NRF separation plot |
 | 8.2 | Create Petal participant characteristics | `dataset_list.csv` and `medscinet_export_petal.xlsx` | `supplementary_table_1_petal_dataset_characteristics.csv` | 15 rows x 2 columns; Supplementary Table 3 |
 | 8.3 | Summarise and visualise the three NRF templates | the three configured 500-Hz NRF templates | `supplementary_table_4_nrf_template_derivation_and_fitting_details.csv` and `supplementary_figure_1_nrf_template_visualisations.pdf` | 9 rows x 4 columns and a three-panel vector PDF; Supplementary Table 6 and Supplementary Figure 13 |
 
@@ -234,11 +234,14 @@ Command Window, then validates its required inputs before creating the results
 directory or writing its own scientific targets. A rejected run may therefore
 create or replace only that script's log; it does not create a scientific
 output. A successful rerun replaces its exact log and scientific targets. Step
-8.1 leaves its eight-panel figure, fixed configuration, calculated panel data
-and graphics handles in the workspace for inspection. It calculates both
-`lance_prestim` and `lance` time-series, time-frequency and PSD panels at the
-recording level, then plots the already-saved paired Step 7.6/7.7 QC and NRF
-results without rerunning their bootstrap. It does not call a Step 7 script.
+8.1 leaves its seven-panel figure, fixed configuration, calculated panel data,
+and graphics handles in the workspace for inspection. It places the `lance`
+true-event plots on the left and the `lance_prestim` internal-reference plots
+on the right for the recording-level time-series, time-frequency, and PSD
+rows. The final row centres the n-NRF comparison at its existing width,
+showing magnitudes and paired differences in µV. It plots the already-saved
+paired Step 7.7 NRF result without rerunning its bootstrap and does not require
+the QC comparison result. It does not call a Step 7 script.
 Step 8.2 leaves `participantDetailsTable` and `supplementaryTable1` in the
 workspace. In the optional mapped route it uses the private registry only to
 translate the MedSciNet source identity to replacement `subjectID`; the saved

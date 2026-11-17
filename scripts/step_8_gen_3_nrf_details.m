@@ -61,7 +61,7 @@ figureOutPath = fullfile(resultsDir, ...
 earlyNRFName    = 'early_NRF_500Hz';
 noxiousNRFName  = 'noxious_NRF_500Hz';
 pretermNRFName  = 'noxious_preterm_NRF_500Hz';
-nrfDisplayNames = {'Early', 'Noxious', 'Noxious preterm'};
+nrfDisplayNames = {'e-NRF', 'n-NRF', 'p-NRF'};
 
 % =========================================================================
 % B. Projection and jitter settings
@@ -81,6 +81,8 @@ fsExpected      = 500;
 supportStartMs  = 0;
 supportEndMs    = 1200;
 visibleXLimMs   = [0 1000];
+visibleYLim     = [-0.2 0.2];
+visibleYTicks   = [-0.2 -0.1 0 0.1 0.2];
 invertYAxis     = true;
 
 % =========================================================================
@@ -299,6 +301,8 @@ for i = 1:nNRF
         'DisplayName', nrfDisplayNames{i});
 
     xlim(visibleXLimMs);
+    ylim(visibleYLim);
+    yticks(visibleYTicks);
     xlabel('Time (ms)');
     ylabel('Unitless amplitude');
     legend('Location', 'northeast');

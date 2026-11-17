@@ -366,10 +366,16 @@ assert(numel(axesHandles) == 3, ...
     'Step 8.3 did not retain the expected three-panel figure.');
 assert(all(strcmp(get(axesHandles, 'YDir'), 'reverse')), ...
     'Step 8.3 did not retain the EEG positive-down display convention.');
+for axisIndex = 1:numel(axesHandles)
+    assert(isequal(axesHandles(axisIndex).YLim, [-0.2 0.2]), ...
+        'Step 8.3 must use the common -0.2 to 0.2 amplitude range.');
+    assert(isequal(axesHandles(axisIndex).YTick, [-0.2 -0.1 0 0.1 0.2]), ...
+        'Step 8.3 must show amplitude ticks at intervals of 0.1.');
+end
 
 templateFiles = {'early_NRF_500Hz.mat', 'noxious_NRF_500Hz.mat', ...
     'noxious_preterm_NRF_500Hz.mat'};
-displayNames = {'Early', 'Noxious', 'Noxious preterm'};
+displayNames = {'e-NRF', 'n-NRF', 'p-NRF'};
 startMs = [100 400 0];
 for i = 1:numel(templateFiles)
     stored = load(fullfile(root, 'NRFs', templateFiles{i}), 'NRF', 'fs');
