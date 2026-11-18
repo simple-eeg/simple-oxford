@@ -24,6 +24,7 @@ study spreadsheets.
 
 - **New to SIMPLE?** Start with the [core guide](https://github.com/simple-eeg/simple#start-here).
 - **Want a worked example without clinical data?** Use the [synthetic tutorial](https://github.com/simple-eeg/simple#synthetic-tutorial).
+- **Reviewing the paper's results?** See the [saved JASP analyses](https://github.com/simple-eeg/simple-data/tree/main/jasp) and [figure source data guide](https://github.com/simple-eeg/simple-data/tree/main/figure-source-data).
 - **Working with Oxford data?** Follow [setup](#before-you-begin) and the [numbered workflow](#workflow).
 - **Looking up formats or options?** Use the [technical reference](#technical-reference) and each function's MATLAB help.
 
@@ -394,7 +395,8 @@ identity and record the canonical file path for provenance.
 datasets or run numbered scripts against project data. It requires the exact
 verified versions: MATLAB R2026a Update 4 and EEGLAB 2026.0.0. Use a dedicated
 MATLAB session because some tests run temporary scripts that clear the base
-workspace.
+workspace. The full suite also requires the CleanLine plugin (`pop_cleanline`),
+even when the selected preprocessing route does not use it.
 
 Replace the example paths below with your checkout and EEGLAB locations:
 
@@ -430,7 +432,8 @@ and EEGLAB versions above. To start it, open the repository's **Actions** tab,
 select **MATLAB synthetic tests**, and choose **Run workflow**. It uses only
 synthetic fixtures, without clinical datasets.
 
-Run static repository checks from the checkout root:
+Static repository checks require Bash, Git, Python 3, and Unix command-line
+tools, including `shasum`. Run them from the checkout root:
 
 ```sh
 ./tests/run_static_checks.sh
