@@ -5,7 +5,7 @@ group. It prepares source recordings, runs SIMPLE (Single-event Measurement
 Pipeline for EEG), and exports results for analysis. It supports several Oxford
 datasets; the Petal trial is the example used in the SIMPLE methods paper.
 
-**Software credits:** [Marianne van der Vaart](https://github.com/mvandervaart), [Simon Marchant](https://github.com/simonmarchant), and [Luke Baxter](https://github.com/lukebax) contributed equally to the development of this software.
+**Software credits:** [Luke Baxter](https://github.com/lukebax), [Marianne van der Vaart](https://github.com/mvandervaart), and [Simon Marchant](https://github.com/simonmarchant) contributed equally to the development of this software.
 
 Associated methods paper: citation and link to be added when available.
 
