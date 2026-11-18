@@ -3,12 +3,46 @@
   "repository": "simple-oxford",
   "baseline": 1,
   "comparison_policy": {
-    "exact_behaviour": "strict isequaln",
-    "absolute_tolerance": 0,
-    "relative_tolerance": 0
+    "exact_behaviour": "Strict isequaln except explicitly named saved floating-point outputs; same-runner comparisons remain exact.",
+    "floating_rule": "abs(actual - expected) <= absolute_tolerance + relative_tolerance * abs(expected), elementwise",
+    "comparator": {
+      "path": "tests/saved_reference_matches.m",
+      "sha256": "9dc64dea5f65d503d59e07cbc5b7b13e6bf17d164dee231a7dce14c052a68c07"
+    },
+    "self_tests": {
+      "path": "tests/run_saved_reference_tests.m",
+      "sha256": "056d00196dc72c2e4b78c53cd2e8a50813f20fe9e6e21077afdfacfa8e4900f8",
+      "expected_pass_count": 34
+    },
+    "preproc_data": {
+      "absolute_tolerance": 1e-15,
+      "relative_tolerance": 0
+    },
+    "ordinary_response_fields": [
+      "pearsonR",
+      "cosineSimilarity",
+      "olsCoef"
+    ],
+    "ordinary_qc_fields": [
+      "RobustSlopeNorm",
+      "AutoCorrLag1Pos",
+      "AutoCorrLag1Neg"
+    ],
+    "ordinary": {
+      "absolute_tolerance": 1e-14,
+      "relative_tolerance": 1e-12
+    },
+    "fgls_fields": [
+      "fglsCoef",
+      "fglsVarCoef"
+    ],
+    "fgls": {
+      "absolute_tolerance": 1e-12,
+      "relative_tolerance": 5e-09
+    }
   },
   "expected_runtime_totals": {
-    "runner_sha256": "5559e20a474e572e28bca9bf76e5b3519fec25b82694701f54c15ca1ca3e7197",
+    "runner_sha256": "b60bf7c1a38291caaf69247d1cbf19a0b8b48b4cbfcf571930eb3d085d98f8d7",
     "preproc": 30,
     "response": 11,
     "jitter": 11,
