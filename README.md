@@ -39,6 +39,8 @@ epochs provide nearby, non-target activity for comparison with the true event.
 
 The workflow requires MATLAB and EEGLAB, a MATLAB toolbox for EEG analysis.
 The verified environment is MATLAB R2026a Update 4 with EEGLAB 2026.0.0.
+Use MATLAB and EEGLAB versions supported on your operating system. The
+project paths in the scripts are editable examples, not macOS requirements.
 Required functionality includes:
 
 - Statistics and Machine Learning Toolbox operations such as `corr`,
@@ -411,6 +413,10 @@ and `.set` sanitisation, NRF result replacement, and public APIs. Temporary
 copies of the Step 8 and Step 9 scripts check all four manuscript outputs
 (including both PDFs) and the five CSVs produced by the complete six-script
 heel-lance export chain.
+
+The GitHub workflow checks Python source contracts on macOS, Windows, and
+Linux. On Windows it also checks file-link inspection under an ordinary user
+account. These checks do not run MATLAB or replace the synthetic MATLAB suite.
 
 Run static repository checks from the checkout root:
 

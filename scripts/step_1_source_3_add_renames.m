@@ -68,7 +68,9 @@ for i = 1:n_rows
 
     % Build BIDS base filename and destination path
     bids_prefix = "sub-" + subjID + "_ses-" + sessID + "_run-" + runID;
-    dest_path = fullfile("data", "source", "sub-" + subjID, "ses-" + sessID, "eeg");
+    % Registry paths use '/' on every operating system; fullfile is for
+    % resolving those paths against the local checkout when files are used.
+    dest_path = "data/source/sub-" + subjID + "/ses-" + sessID + "/eeg";
     file_table.path_renamed(i) = dest_path;
 
     % Define which files are relevant for the current format

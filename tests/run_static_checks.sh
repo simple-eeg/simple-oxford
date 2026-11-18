@@ -148,7 +148,7 @@ list_candidate_untracked() {
     git -C "$repo_root" ls-files --others --exclude-standard -z | \
         while IFS= read -r -d '' relative_path; do
             case "$relative_path" in
-                .gitignore|LICENSE|README.md|NRFs/*|data/.gitkeep|data_lists/.gitkeep|functions/*|scripts/*|tests/*)
+                .gitattributes|.github/*|.gitignore|LICENSE|README.md|NRFs/*|data/.gitkeep|data_lists/.gitkeep|functions/*|scripts/*|tests/*)
                     printf '%s\0' "$relative_path"
                     ;;
             esac
@@ -492,6 +492,7 @@ check_function_inventory() {
         plot_guardrail_average_tf.m \
         plot_guardrail_average_ts.m \
         preproc.m \
+        private/file_hard_link_count.m \
         quality_control_features.m \
         quality_control_features_with_diagnostics.m \
         read_annotations_from_xdf_csv.m \
@@ -508,8 +509,8 @@ check_function_inventory() {
         verify_sanitised_eeglab_dataset.m | LC_ALL=C sort > "$expected"
     git -C "$candidate" ls-files functions | sed 's#^functions/##' | LC_ALL=C sort > "$actual"
     diff -u "$expected" "$actual" || return 1
-    [ "$(wc -l < "$actual" | tr -d ' ')" -eq 45 ] || return 1
-    printf 'exact 45-function inventory'
+    [ "$(wc -l < "$actual" | tr -d ' ')" -eq 46 ] || return 1
+    printf 'exact 46-function inventory'
 }
 
 check_template_inventory() {
@@ -1541,7 +1542,7 @@ check_readme() {
 check_root_shape() {
     expected="$work_root/root.expected"
     actual="$work_root/root.actual"
-    printf '%s\n' .gitignore LICENSE NRFs README.md data data_lists functions scripts tests | LC_ALL=C sort > "$expected"
+    printf '%s\n' .gitattributes .github .gitignore LICENSE NRFs README.md data data_lists functions scripts tests | LC_ALL=C sort > "$expected"
     git -C "$candidate" ls-files | awk -F/ 'NF {print $1}' | LC_ALL=C sort -u > "$actual"
     diff -u "$expected" "$actual" || return 1
     printf 'exact documented top-level tracked contract'
